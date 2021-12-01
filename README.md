@@ -45,16 +45,13 @@ The zenduty provider offers two means of providing credentials for authenticatio
 recommended, and risks secret leakage should this file ever be committed to a
 public version control system.
 
-Static credentials can be provided by adding an `base_url` and `token` in-line in
-the zenduty provider block.
-
-configure base_url only for stage servers
+Static credentials can be provided by adding `token` in-line in
+the Zenduty provider block.
 
 ```hcl
 provider "zenduty" {
   # Configuration options
     token = "your api key"
-    base_url = "" // pass base url for stage servers
 }
 
 ```
@@ -62,12 +59,6 @@ provider "zenduty" {
 ### Environment Variables
 
 You can provide your credentials via the `ZENDUTY_API_KEY` environment variables.
-
-```hcl
-provider "zenduty" {
-    base_url = "" // pass base url for stage servers
-}
-```
 
 Usage:
 
