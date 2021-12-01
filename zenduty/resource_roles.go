@@ -49,13 +49,6 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, m interface
 	apiclient, _ := m.(*Config).Client()
 
 	newrole := &client.Roles{}
-	rank := d.Get("role").(int)
-	if rank == 0 {
-		rank = 1
-	}
-	if rank <= 0 || rank > 10 {
-		return diag.Errorf("Rank should be between 1 and 10")
-	}
 	var diags diag.Diagnostics
 	if v, ok := d.GetOk("team"); ok {
 		newrole.Team = v.(string)
@@ -69,8 +62,15 @@ func resourceRoleCreate(ctx context.Context, d *schema.ResourceData, m interface
 	if v, ok := d.GetOk("title"); ok {
 		newrole.Title = v.(string)
 	}
-
-	newrole.Rank = rank
+	if v, ok := d.GetOk("rank"); ok {
+		newrole.Rank = v.(int)
+		if newrole.Rank == 0 {
+			newrole.Rank = 1
+		}
+		if newrole.Rank <= 0 || newrole.Rank > 10 {
+			return diag.Errorf("Rank should be between 1 and 10")
+		}
+	}
 
 	role, err := apiclient.Roles.CreateRole(newrole.Team, newrole)
 	if err != nil {
@@ -88,14 +88,6 @@ func resourceRoleUpdate(Ctx context.Context, d *schema.ResourceData, m interface
 	id := d.Id()
 	newrole.Unique_Id = id
 	var diags diag.Diagnostics
-	rank := d.Get("role").(int)
-	if rank == 0 {
-		rank = 1
-	}
-	if rank <= 0 || rank > 10 {
-		return diag.Errorf("Rank should be between 1 and 10")
-	}
-
 	if v, ok := d.GetOk("description"); ok {
 		newrole.Description = v.(string)
 
@@ -106,7 +98,15 @@ func resourceRoleUpdate(Ctx context.Context, d *schema.ResourceData, m interface
 	if v, ok := d.GetOk("team"); ok {
 		team_id = v.(string)
 	}
-	newrole.Rank = rank
+	if v, ok := d.GetOk("rank"); ok {
+		newrole.Rank = v.(int)
+		if newrole.Rank == 0 {
+			newrole.Rank = 1
+		}
+		if newrole.Rank <= 0 || newrole.Rank > 10 {
+			return diag.Errorf("Rank should be between 1 and 10")
+		}
+	}
 	_, err := apiclient.Roles.UpdateRoles(team_id, newrole)
 	if err != nil {
 		return diag.FromErr(err)
@@ -128,8 +128,6 @@ func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	return diags
 }
-
 func resourceRoleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	return nil
-
 }
