@@ -24,7 +24,7 @@ func dataSourceIntegrations() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"results": &schema.Schema{
+			"integrations": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -123,7 +123,7 @@ func dataSourceIncidentReads(ctx context.Context, d *schema.ResourceData, m inte
 			"default_urgency":      integration.Default_Urgency,
 		}
 
-		if err := d.Set("results", items); err != nil {
+		if err := d.Set("integrations", items); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(time.Now().String())
@@ -164,7 +164,7 @@ func dataSourceIncidentReads(ctx context.Context, d *schema.ResourceData, m inte
 			}
 		}
 
-		if err := d.Set("results", items); err != nil {
+		if err := d.Set("integrations", items); err != nil {
 			return diag.FromErr(err)
 		}
 		d.SetId(time.Now().String())

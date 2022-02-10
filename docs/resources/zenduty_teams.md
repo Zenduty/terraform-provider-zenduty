@@ -12,7 +12,7 @@ Provides a Zenduty Team Resource. This allows Teams to be created, updated, and 
 
 ## Example Usage
 ```hcl
-    resource "zenduty_teams" "team" {
+  resource "zenduty_teams" "exampleteam" {
       name = "exmaple team"
     }
 

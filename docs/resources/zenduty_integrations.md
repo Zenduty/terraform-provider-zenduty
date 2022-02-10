@@ -30,6 +30,8 @@ description: |-
 * `summary` (Required)- The summary for the integration.
 * `application` (Required)- The application id you want to be integrated.
 
+* To get application id, vist https://www.zenduty.com/api/account/applications/ and get unique_id of the application.
+
 
 
 
