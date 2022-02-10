@@ -13,9 +13,10 @@ description: |-
 ## Example Usage
 ```hcl 
 
-resource "zenduty_esp" "examplee sp" {
+resource "zenduty_esp" "example_esp" {
     name = "" 
-    team_id = ""  
+    team_id = ""
+    description = ""
 }
 
 ```
@@ -23,7 +24,7 @@ resource "zenduty_esp" "examplee sp" {
 
 * `team_id` (Required) - The unique_id of the team to create the escalation policy in.
 * `name` (Required) - The name of the escalation policy.
-* `description` (Optional) - The description of the escalation policy
+* `description` (Required) - The description of the escalation policy
 * `summary` (Optional) - The summary of the escalation policy.
 * `rules` (Optional) - The rules of the escalation policy. (see [below for nested schema](#nestedblock--rules))
 * `move_to_next` (Optional) - The move_to_next of the escalation policy.
@@ -33,7 +34,7 @@ resource "zenduty_esp" "examplee sp" {
 ## Rules
 ```hcl
     rules {
-        delay = "
+        delay = ""
         #targets
     }
 ```
@@ -44,12 +45,52 @@ resource "zenduty_esp" "examplee sp" {
 ## Targets 
 ```hcl
     targets {
-        target_type = "
-        target_id = "
+        target_type = ""
+        target_id = ""
     }
 ```
-* `target_type` (Required) (Number) - The type of the target. values are `2` for user
-* `target_id` (Required) (String) - The  of the target. username of the user to assign.
+* `target_type` (Required) (Number) -  values are `1` for schedule `2` for user
+* `target_id` (Required) (String) -  username of the user to assign. or unique_id of schedule 
+
+## Escalation Policy Example
+```hcl
+
+resource "zenduty_esp" "esp1" {
+    name = "Infra escalation policy" 
+    team_id = ""
+    summary = "This is the summary for the new ESP"
+    description = "This is the description for the new ESP"
+    rules {
+        delay = 0    
+        targets {
+            target_type = 2
+            target_id = "" //username of user
+    
+        }
+        targets {
+            target_type = 1
+            target_id = "" // unique id of the schedule
+        }
+    
+    }
+    rules {
+        delay = 5    
+        targets {
+            target_type = 2
+            target_id = ""
+    
+        }
+        targets {
+            target_type = 2
+            target_id = ""
+        }
+    
+    }
+    move_to_next = true
+    repeat_policy=8
+}
+
+```
 
 
 
@@ -63,7 +104,7 @@ resource "zenduty_esp" "examplee sp" {
 
 - **description** (String)
 - **move_to_next** (Boolean)
-- **repeat_policy** (Number)
+- **repeat_policy** (Number) -> range from `1` to `10`
 - **rules** (Block List) (see [above rules schema](#nestedblock--rules))
 - **summary** (String)
 

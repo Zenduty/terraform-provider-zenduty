@@ -17,7 +17,7 @@ func dataSourceServices() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"id": {
+			"service_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
@@ -105,7 +105,7 @@ func dataSourceServicesRead(ctx context.Context, d *schema.ResourceData, m inter
 	apiclient, _ := m.(*Config).Client()
 
 	team_id := d.Get("team_id").(string)
-	id := d.Get("id").(string)
+	id := d.Get("service_id").(string)
 	if team_id == "" {
 		return diag.Errorf("team_id is required")
 	}
