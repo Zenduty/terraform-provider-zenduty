@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Kdheeru12/zenduty-test/client"
+	"github.com/Zenduty/zenduty-go-sdk/client"
 )
 
 type Config struct {
