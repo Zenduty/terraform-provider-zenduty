@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/Kdheeru12/zenduty-test/client"
+	"github.com/Zenduty/zenduty-go-sdk/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 

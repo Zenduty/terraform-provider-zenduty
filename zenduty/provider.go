@@ -32,6 +32,7 @@ func Provider() *schema.Provider {
 			"zenduty_incidents":    resourceIncidents(),
 			"zenduty_invite":       resourceInvite(),
 			"zenduty_member":       resourceMembers(),
+			"zenduty_alertrules":   resourceAlertRules(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -43,6 +44,7 @@ func Provider() *schema.Provider {
 			"zenduty_schedules":    dataSourceSchedules(),
 			"zenduty_esp":          dataSourceEsp(),
 			"zenduty_user":         dataSourceUsers(),
+			"zenduty_alertrules":   dataSourceAlertRules(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}
