@@ -16,7 +16,7 @@ func dataSourceRoles() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"items": &schema.Schema{
+			"roles": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -76,7 +76,7 @@ func dataSourceOrderRead(ctx context.Context, d *schema.ResourceData, m interfac
 		items[i] = item
 	}
 
-	if err := d.Set("items", items); err != nil {
+	if err := d.Set("roles", items); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(team_id)

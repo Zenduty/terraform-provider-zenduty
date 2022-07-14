@@ -17,6 +17,14 @@ data "zenduty_roles" "exampleroles" {
 
 ```
 
+
+```hcl
+
+output "zenduty_roles" {
+  value = data.zenduty_roles.exampleroles.roles
+}
+  
+``` 
 ## Argument Reference
 
 * `team_id`(Required) - The UniqueID of the team to query.

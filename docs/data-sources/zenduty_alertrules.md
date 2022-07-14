@@ -22,6 +22,16 @@ data "zenduty_alertrules" "examplealertrules" {
 ```
 
 
+
+```hcl
+
+output "zenduty_alertrules" {
+  value = data.zenduty_alertrules.examplealertrules.alertrules
+}
+
+```
+
+
 ## Argument Reference
 * `team_id`(Required) - unique_id of the team
 * `service_id`(Required) - unique_id of the service

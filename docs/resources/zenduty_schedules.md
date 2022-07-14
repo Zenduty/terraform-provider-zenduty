@@ -29,6 +29,7 @@ resource "zenduty_schedules" "schedule1" {
 * `name` (Required) - The name of the schedule.
 * `time_zone` (Required) - The time_zone of the schedule. ex: "Asia/Kolkata"
 * `layers`(Optional) - The layers of the schedule. (see [below for nested schema](#nestedblock--layers))
+* `overrides`(Optional) - The overrides of the schedule. (see [below for nested schema](#nestedblock--overrides))
 * `description` (Optional) - The description of the schedule.
 * `summary` (Optional) - The summary of the schedule.
 
@@ -42,10 +43,12 @@ resource "zenduty_schedules" "schedule1" {
 
 layers {
     name = ""
+    restriction_type = ""
     rotation_end_time = ""
     rotation_start_time = ""
     shift_length = ""
     users = []
+
   }
 
 ```
@@ -57,6 +60,89 @@ layers {
 * `rotation_start_time` (Required) - The rotation_start_time of the layer.
 * `shift_length` (Required) (Number) - The shift_length of the layer.
 * `users`(Required) -  Array of username of users
+* `restriction_type` (Required)(Number) - The restriction_type of the layer. ex: 1 for day, 2 for week ,0 for default
+* `restrictions`(Optional) - The restrictions of the layer. (see [below for nested schema](#nestedblock--restrictions))
+
+
+<a id="nestedblock--restrictions"></a>
+
+```hcl
+
+restrictions {
+  start_time_of_day = "08:00:00"
+  start_day_of_week = 7
+  duration = 604700
+}
+
+```
+
+## Argument Reference
+* `start_time_of_day` (Required) - The start_time_of_day of the restriction. time in HH:MM:SS format.
+* `start_day_of_week` (Required) - The start_day_of_week of the restriction. for daily restriction, it is 7. for weekly restriction, it is the day of the week.ie: 1 for monday, 2 for tuesday, 3 for wednesday, 4 for thursday, 5 for friday, 6 for saturday, 7 for sunday.
+* `duration` (Required)(Number) - The duration of the restriction in seconds.for daily restriction, max value can be  86400(24*60*60). for weekly restriction, it is 604800(7*24*60*60).
+
+## Layers and Daily Restrictions
+
+```hcl
+
+layers {
+  name = ""
+  restriction_type = 1 # 1 for day, 2 for week, 0 for default
+  rotation_end_time = ""
+  rotation_start_time = ""
+  shift_length = ""
+  users = []
+  restrictions {
+    start_time_of_day = "08:00:00"
+    start_day_of_week = 7 
+    duration = 3600
+  }
+}
+
+```
+## Layers and Weekly Restrictions
+
+```hcl
+
+layers {
+  name = ""
+  rotation_end_time = ""
+  rotation_start_time = ""
+  shift_length = ""
+  users = []
+  restriction_type = 2 # 1 for daily, 2 for week, 0 for default
+  restrictions {
+    start_time_of_day = "08:00:00"
+    start_day_of_week = 1 # monday is 1, tuesday is 2, wednesday is 3, thursday is 4, friday is 5, saturday is 6, sunday is 7
+    duration = 86400
+  }
+}
+
+```
+
+
+<a id="nestedblock--overrides"></a>
+## layers
+
+```hcl
+## Schedule Override
+
+```hcl
+overrides { 
+  name = "example override"
+  start_time = "2021-03-01 11:36"
+  end_time = "2021-04-02 00:00"
+  user = ""  
+}
+
+```
+## Argument Reference
+* `name` (Required) - The name of the override.
+* `start_time` (Required) - The start_time of the override. time in YYYY-MM-DD HH:MM format in UTC.
+* `end_time` (Required) - The end_time of the override. time in YYYY-MM-DD HH:MM format format in UTC.
+* `user` (Required) - The user of the override.
+
+
 
 
 
@@ -74,6 +160,13 @@ resource "zenduty_schedules" "schedule3" {
     rotation_start_time = "2022-02-09T12:21:11+05:30"
     shift_length = 86400
     users = ["user1", "user2"]
+    restriction_type = 2 # 1 for daily, 2 for week, 0 for default
+    restrictions {
+      start_time_of_day = "08:00:00"
+      start_day_of_week = 1 
+      duration = 86400
+    }
+
   }
   layers {
     name = "layer2"
@@ -81,8 +174,20 @@ resource "zenduty_schedules" "schedule3" {
     rotation_start_time = "2022-02-09T12:21:11+05:30"
     shift_length = 86400
     users = ["user3", "user4"]
-  }
+    restriction_type = 1
+    restrictions {
+      start_time_of_day = "08:00:00"
+      start_day_of_week = 7 
+      duration = 3600
+    }
 
+  }
+  overrides { 
+    name = "example override"
+    start_time = "2021-03-01 11:36"
+    end_time = "2021-04-02 00:00"
+    user = ""  
+  }
 }
 
 

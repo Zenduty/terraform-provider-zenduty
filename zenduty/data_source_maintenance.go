@@ -18,7 +18,7 @@ func dataSourceMaintenanceWindow() *schema.Resource {
 				Required: true,
 			},
 
-			"maintenance": &schema.Schema{
+			"maintenance_windows": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -112,7 +112,7 @@ func dataSourceManintenanceRead(ctx context.Context, d *schema.ResourceData, m i
 		items[i] = item
 
 	}
-	if err := d.Set("maintenance", items); err != nil {
+	if err := d.Set("maintenance_windows", items); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(time.Now().String())

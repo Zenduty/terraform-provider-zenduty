@@ -11,7 +11,7 @@ description: |-
 
 ```hcl 
 resource "zenduty_alertrules" "example_alertrules" {
-    name = "Infra alert rules"
+  
     description = "This is the description for the new alert rules"
     team_id = ""
     service_id = ""
@@ -27,7 +27,6 @@ resource "zenduty_alertrules" "example_alertrules" {
 * `team_id` (Required) - The unique_id of the team to create the alert rule in.
 * `service_id` (Required) - The unique_id of the service to create the alert rule in.
 * `integration_id` (Required) - The unique_id of the integration to create the alert rule in.
-* `name` (Required) - The name of the alert rule.
 * `description` (Required) - The description of the alert rule.
 * `actions` (Optional) - The rules of the escalation policy. (see [below for nested schema](#nestedblock--actions))
 

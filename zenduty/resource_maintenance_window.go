@@ -3,6 +3,7 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -67,24 +68,49 @@ func ValidateMaintenanceWindow(Ctx context.Context, d *schema.ResourceData, m in
 		}
 		new_manintence.Name = v.(string)
 	}
-	if v, ok := d.GetOk("start_time"); ok {
-		if !validateDate(v.(string)) {
-			return nil, diag.FromErr(errors.New("start_time is invalid"))
-		}
-		new_manintence.StartTime = v.(string)
-	}
-	if v, ok := d.GetOk("end_time"); ok {
-		if !validateDate(v.(string)) {
-			return nil, diag.FromErr(errors.New("end_time is invalid"))
-		}
-		new_manintence.EndTime = v.(string)
-	}
 	if v, ok := d.GetOk("timezone"); ok {
 		if v.(string) == "" {
 			return nil, diag.FromErr(errors.New("timezone must not be empty"))
 		}
 		new_manintence.TimeZone = v.(string)
 	}
+
+	if v, ok := d.GetOk("start_time"); ok {
+		if !validateDate(v.(string)) {
+			return nil, diag.FromErr(errors.New("start_time is invalid"))
+		}
+
+		new_manintence.StartTime = v.(string)
+		parsed_time, err := time.Parse("2006-01-02 15:04", v.(string))
+		if err != nil {
+			return nil, diag.FromErr(errors.New(err.Error()))
+		}
+		loc, zone_err := time.LoadLocation(new_manintence.TimeZone)
+		if zone_err != nil {
+			return nil, diag.FromErr(errors.New(zone_err.Error()))
+		}
+
+		new_manintence.StartTime = parsed_time.In(loc).Format(time.RFC3339)
+
+	}
+	if v, ok := d.GetOk("end_time"); ok {
+		if !validateDate(v.(string)) {
+			return nil, diag.FromErr(errors.New("end_time is invalid"))
+		}
+		new_manintence.EndTime = v.(string)
+
+		parsed_time, err := time.Parse("2006-01-02 15:04", v.(string))
+		if err != nil {
+			return nil, diag.FromErr(errors.New(err.Error()))
+		}
+		loc, zone_err := time.LoadLocation(new_manintence.TimeZone)
+		if zone_err != nil {
+			return nil, diag.FromErr(errors.New(zone_err.Error()))
+		}
+
+		new_manintence.EndTime = parsed_time.In(loc).Format(time.RFC3339)
+	}
+
 	if v, ok := d.GetOk("repeat_interval"); ok {
 		if v.(int) <= 0 {
 			return nil, diag.FromErr(errors.New("repeat_interval must be greater than 0"))
@@ -183,12 +209,7 @@ func resourceReadManintenances(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	d.Set("name", maintenance.Name)
-	d.Set("start_time", maintenance.StartTime)
-	d.Set("end_time", maintenance.EndTime)
-	d.Set("timezone", maintenance.TimeZone)
-	d.Set("repeat_interval", maintenance.RepeatInterval)
-	d.Set("repeat_until", maintenance.RepeatUntil)
-	d.Set("services", maintenance.Services)
+
 	return nil
 }
 
