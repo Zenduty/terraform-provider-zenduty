@@ -2,6 +2,7 @@ package zenduty
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -59,6 +60,9 @@ func dataSourceUserReads(ctx context.Context, d *schema.ResourceData, m interfac
 	users, err := apiclient.Users.GetUsers(email)
 	if err != nil {
 		return diag.FromErr(err)
+	}
+	if len(users) == 0 {
+		return diag.FromErr(fmt.Errorf("no users found with email %s", email))
 	}
 	items := make([]map[string]interface{}, len(users))
 	for i, user := range users {
