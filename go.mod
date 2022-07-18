@@ -3,7 +3,7 @@ module terraform-provider-zenduty
 go 1.17
 
 require (
-	github.com/Zenduty/zenduty-go-sdk v0.1.1
+	github.com/Zenduty/zenduty-go-sdk v0.1.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.10.1
 )
 
