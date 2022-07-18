@@ -17,6 +17,13 @@ data "zenduty_user" "exampleuser" {
 
 ```
 
+```hcl
+output "user" {
+  value = data.zenduty_user.exampleuser.users[0]
+}
+
+```
+
 
 ## Argument Reference
 * `email`(Required) - Emailid of the user to query.

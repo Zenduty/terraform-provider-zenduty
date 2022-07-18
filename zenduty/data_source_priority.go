@@ -7,16 +7,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceRoles() *schema.Resource {
+func dataSourcePriorities() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceOrderRead,
+		ReadContext: dataSourcePriorityRead,
 
 		Schema: map[string]*schema.Schema{
 			"team_id": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"roles": &schema.Schema{
+
+			"priorities": &schema.Schema{
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
@@ -29,7 +30,7 @@ func dataSourceRoles() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"title": {
+						"name": {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
@@ -41,8 +42,8 @@ func dataSourceRoles() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
-						"rank": {
-							Type:     schema.TypeInt,
+						"color": {
+							Type:     schema.TypeString,
 							Computed: true,
 						},
 					},
@@ -52,31 +53,30 @@ func dataSourceRoles() *schema.Resource {
 	}
 }
 
-func dataSourceOrderRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func dataSourcePriorityRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
 	var diags diag.Diagnostics
 
 	team_id := d.Get("team_id").(string)
 
-	roles, err := apiclient.Roles.GetRoles(team_id)
+	priorities, err := apiclient.Priority.GetPriority(team_id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	items := make([]map[string]interface{}, len(roles))
-	for i, role := range roles {
+	items := make([]map[string]interface{}, len(priorities))
+	for i, priority := range priorities {
 		item := make(map[string]interface{})
-		item["team"] = role.Team
-		item["unique_id"] = role.Unique_Id
-		item["title"] = role.Title
-		item["creation_date"] = role.Creation_Date
-		item["description"] = role.Description
-		item["rank"] = role.Rank
+		item["team"] = priority.Team
+		item["unique_id"] = priority.Unique_Id
+		item["name"] = priority.Name
+		item["creation_date"] = priority.Creation_Date
+		item["description"] = priority.Description
 		items[i] = item
 	}
 
-	if err := d.Set("roles", items); err != nil {
+	if err := d.Set("priorities", items); err != nil {
 		return diag.FromErr(err)
 	}
 	d.SetId(team_id)

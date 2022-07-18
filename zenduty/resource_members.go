@@ -71,7 +71,12 @@ func resourceMemberUpdate(Ctx context.Context, d *schema.ResourceData, m interfa
 		new_members.User = v.(string)
 	}
 	if v, ok := d.GetOk("role"); ok {
-		new_members.Role = v.(int)
+
+		if v.(int) == 0 {
+			new_members.Role = 2
+		} else {
+			new_members.Role = v.(int)
+		}
 	}
 	if v, ok := d.GetOk("team"); ok {
 		new_members.Team = v.(string)
@@ -110,6 +115,6 @@ func resourceMemberRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId(member.Unique_Id)
 	d.Set("team", member.Team)
 	d.Set("user", member.User)
-	d.Set("role", member.Role)
+
 	return diags
 }

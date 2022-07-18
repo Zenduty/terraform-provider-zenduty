@@ -32,8 +32,6 @@ cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/Zenduty/zenduty-go-sdk v0.2.0 h1:dkLA/7pvwpEoMQCTu6EKjDCol0Ips2nOz6Wo4UBP5Mk=
-github.com/Zenduty/zenduty-go-sdk v0.2.0/go.mod h1:AGpdVF88uQvIYkNu5BQcbPkwPZX6egn34tRZd08mizo=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver v1.5.0/go.mod h1:MB6lktGJrhw8PrUyiEoblNEGEQ+RzHPF078ddwwvV3Y=
 github.com/Masterminds/sprig v2.22.0+incompatible/go.mod h1:y6hNFY5UBTIWBxnzTeuNhlNS5hqE0NB0E6fgfo2Br3o=
@@ -46,6 +44,10 @@ github.com/Zenduty/zenduty-go-sdk v0.1.0 h1:KBAuuNC7AbQzQmpYYxyTL0nWvruZsR7fhe+W
 github.com/Zenduty/zenduty-go-sdk v0.1.0/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
 github.com/Zenduty/zenduty-go-sdk v0.1.1 h1:8j7/qHr5W53s1y2TXprF1ec+Fxsktsqq/J4F6vKQ/A4=
 github.com/Zenduty/zenduty-go-sdk v0.1.1/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
+github.com/Zenduty/zenduty-go-sdk v0.1.2 h1:LdD0hUFov59V4JTTaRCSgzQ3jkbtgjppH9w9TIjnzMc=
+github.com/Zenduty/zenduty-go-sdk v0.1.2/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
+github.com/Zenduty/zenduty-go-sdk v0.2.0 h1:dkLA/7pvwpEoMQCTu6EKjDCol0Ips2nOz6Wo4UBP5Mk=
+github.com/Zenduty/zenduty-go-sdk v0.2.0/go.mod h1:AGpdVF88uQvIYkNu5BQcbPkwPZX6egn34tRZd08mizo=
 github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk=
 github.com/acomagu/bufpipe v1.0.3/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
