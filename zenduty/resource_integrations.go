@@ -65,6 +65,9 @@ func resourceIntegrationCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	d.SetId(integration.Unique_Id)
+	// added integration_key in response output
+	d.Set("integration_key", integration.integration_key)
+	d.Set("is_enabled", integration.is_enabled)
 	return diags
 }
 
