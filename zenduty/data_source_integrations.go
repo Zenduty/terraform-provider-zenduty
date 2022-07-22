@@ -61,6 +61,10 @@ func dataSourceIntegrations() *schema.Resource {
 							Type:     schema.TypeString,
 							Computed: true,
 						},
+						"webhook_url": {
+							Type:     schema.TypeString,
+							Computed: true,
+						},
 						"created_by": {
 							Type:     schema.TypeString,
 							Computed: true,
@@ -117,6 +121,7 @@ func dataSourceIncidentReads(ctx context.Context, d *schema.ResourceData, m inte
 				"documentation_link": integration.Application_Reference.Documentation_Link,
 			},
 			"integration_key":      integration.Integration_key,
+			"webhook_url":          integration.Webhook_url,
 			"created_by":           integration.Created_By,
 			"create_incidents_for": integration.Create_Incident_For,
 			"integration_type":     integration.Integration_Type,
@@ -157,6 +162,7 @@ func dataSourceIncidentReads(ctx context.Context, d *schema.ResourceData, m inte
 					"documentation_link": integration.Application_Reference.Documentation_Link,
 				},
 				"integration_key":      integration.Integration_key,
+				"webhook_url":          integration.Webhook_url,
 				"created_by":           integration.Created_By,
 				"create_incidents_for": integration.Create_Incident_For,
 				"integration_type":     integration.Integration_Type,
