@@ -23,13 +23,13 @@ For example:
 
 ## For Mac
 ```
-mkdir -p ../localtesting/.terraform.d/plugins/zenduty.com/zenduty/zenduty/0.0.1/darwin_arm64
+mkdir -p ../localtesting/.terraform/plugins/zenduty.com/zenduty/zenduty/0.0.1/darwin_arm64
 cp terraform-provider-zenduty ../localtesting/.terraform.d/plugins/zenduty.com/zenduty/zenduty/0.0.1/darwin_arm64
 ```
 
 ## For Linux
 ```
-mkdir -p ../localtesting/.terraform.d/plugins/zenduty.com/zenduty/zenduty/0.0.1/linux_amd64
+mkdir -p ../localtesting/.terraform/plugins/zenduty.com/zenduty/zenduty/0.0.1/linux_amd64
 cp terraform-provider-zenduty ../localtesting/.terraform.d/plugins/zenduty.com/zenduty/0.0.1/linux_amd64
 ```
 
