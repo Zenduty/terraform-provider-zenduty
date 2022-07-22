@@ -38,6 +38,14 @@ func resourceIntegrations() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
+			"integration_key": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"is_enabled": {
+				Type:     schema.TypeBool,
+				Optional: true,
+			},
 		},
 	}
 }
