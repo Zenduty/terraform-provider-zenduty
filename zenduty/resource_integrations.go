@@ -42,6 +42,10 @@ func resourceIntegrations() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"webhook_url": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
 			"is_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -76,6 +80,7 @@ func resourceIntegrationCreate(ctx context.Context, d *schema.ResourceData, m in
 	// added integration_key in response output
 	d.Set("integration_key", integration.Integration_key)
 	d.Set("is_enabled", integration.Is_Enabled)
+	d.Set("webhook_url", integration.Webhook_url)
 	return diags
 }
 
