@@ -3,6 +3,9 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
+	"log"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 
@@ -16,6 +19,10 @@ func resourceEsp() *schema.Resource {
 		UpdateContext: resourceUpdateEsp,
 		DeleteContext: resourceDeleteEsp,
 		ReadContext:   resourceReadEsp,
+		Importer: &schema.ResourceImporter{
+			State: resourceEscalationPolicyImporter,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
@@ -42,14 +49,7 @@ func resourceEsp() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
-						"position": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"unique_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
+
 						"targets": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -81,7 +81,7 @@ func resourceEsp() *schema.Resource {
 	}
 }
 
-func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) *client.EscalationPolicy {
+func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*client.EscalationPolicy, diag.Diagnostics) {
 	new_esp := &client.EscalationPolicy{}
 	rules := d.Get("rules").([]interface{})
 	if v, ok := d.GetOk("name"); ok {
@@ -92,6 +92,9 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) *clie
 	}
 	if v, ok := d.GetOk("description"); ok {
 		new_esp.Description = v.(string)
+		if emptyString(new_esp.Description) {
+			return nil, diag.FromErr(errors.New("description is empty"))
+		}
 	}
 	if v, ok := d.GetOk("team_id"); ok {
 		new_esp.Team = v.(string)
@@ -109,12 +112,12 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) *clie
 		if v, ok := rule_map["delay"]; ok {
 			new_rule.Delay = v.(int)
 		}
-		if v, ok := rule_map["position"]; ok {
-			new_rule.Position = v.(int)
-		}
-		if v, ok := rule_map["unique_id"]; ok {
-			new_rule.Unique_Id = v.(string)
-		}
+		// if v, ok := rule_map["position"]; ok {
+		// 	new_rule.Position = v.(int)
+		// }
+		// if v, ok := rule_map["unique_id"]; ok {
+		// 	new_rule.Unique_Id = v.(string)
+		// }
 		if v, ok := rule_map["targets"]; ok {
 			targets := v.([]interface{})
 			new_rule.Targets = make([]client.Targets, len(targets))
@@ -132,15 +135,42 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) *clie
 		}
 		new_esp.Rules[i] = new_rule
 	}
-	return new_esp
+	return new_esp, nil
 
+}
+
+func flattenRules(rules []client.Rules) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(rules))
+	for i, rule := range rules {
+
+		result[i] = map[string]interface{}{
+			"delay": rule.Delay,
+
+			"targets": flattenTargets(rule.Targets),
+		}
+	}
+	return result
+}
+
+func flattenTargets(targets []client.Targets) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(targets))
+	for i, target := range targets {
+		result[i] = map[string]interface{}{
+			"target_type": target.Target_type,
+			"target_id":   target.Target_id,
+		}
+	}
+	return result
 }
 
 func resourceCreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
 	var diags diag.Diagnostics
-	new_esp := CreateEsp(Ctx, d, m)
+	new_esp, createErr := CreateEsp(Ctx, d, m)
+	if createErr != nil {
+		return createErr
+	}
 
 	esp, err := apiclient.Esp.CreateEscalationPolicy(new_esp.Team, new_esp)
 
@@ -148,6 +178,12 @@ func resourceCreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{
 		return diag.FromErr(err)
 	}
 	d.SetId(esp.Unique_Id)
+
+	readErr := resourceReadEsp(Ctx, d, m)
+	if readErr != nil {
+		return readErr
+	}
+
 	return diags
 
 }
@@ -155,7 +191,10 @@ func resourceCreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{
 func resourceUpdateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	new_esp := CreateEsp(Ctx, d, m)
+	new_esp, createErr := CreateEsp(Ctx, d, m)
+	if createErr != nil {
+		return createErr
+	}
 	id := d.Id()
 	var diags diag.Diagnostics
 
@@ -171,6 +210,7 @@ func resourceDeleteEsp(Ctx context.Context, d *schema.ResourceData, m interface{
 	apiclient, _ := m.(*Config).Client()
 
 	team_id := d.Get("team_id").(string)
+	log.Printf("team_idss: %s", team_id)
 	id := d.Id()
 	if team_id == "" {
 		return diag.FromErr(errors.New("team_id is required"))
@@ -186,9 +226,15 @@ func resourceReadEsp(Ctx context.Context, d *schema.ResourceData, m interface{})
 	apiclient, _ := m.(*Config).Client()
 
 	team_id := d.Get("team_id").(string)
+	if v, ok := d.GetOk("team_id"); ok {
+		team_id = v.(string)
+	}
+
+	log.Printf("team_id: %s", team_id)
+
 	id := d.Id()
 	if team_id == "" {
-		return diag.FromErr(errors.New("team_id is required"))
+		return diag.FromErr(errors.New("team_id is required "))
 	}
 	var diags diag.Diagnostics
 	esp, err := apiclient.Esp.GetEscalationPolicyById(team_id, id)
@@ -196,5 +242,28 @@ func resourceReadEsp(Ctx context.Context, d *schema.ResourceData, m interface{})
 		return diag.FromErr(err)
 	}
 	d.Set("name", esp.Name)
+	d.Set("team_id", esp.Team)
+	d.Set("summary", esp.Summary)
+	d.Set("description", esp.Description)
+	d.Set("repeat_policy", esp.Repeat_Policy)
+	d.Set("move_to_next", esp.Move_To_Next)
+	if err := d.Set("rules", flattenRules(esp.Rules)); err != nil {
+		return diag.FromErr(err)
+	}
+
 	return diags
+}
+
+func resourceEscalationPolicyImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<esp_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid escalationpolicyid (%q)", parts[1])
+	}
+	d.Set("team_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }

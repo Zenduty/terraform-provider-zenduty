@@ -3,11 +3,14 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceServices() *schema.Resource {
@@ -16,18 +19,24 @@ func resourceServices() *schema.Resource {
 		UpdateContext: resourceUpdateServices,
 		DeleteContext: resourceDeleteServices,
 		ReadContext:   resourceReadServices,
+		Importer: &schema.ResourceImporter{
+			State: resourceServiceImporter,
+		},
+
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
 			"escalation_policy": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: ValidateUUID(),
 			},
 			"team_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: ValidateUUID(),
 			},
 			"description": {
 				Type:     schema.TypeString,
@@ -38,30 +47,34 @@ func resourceServices() *schema.Resource {
 				Optional: true,
 			},
 			"collation": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 1),
 			},
 			"collation_time": {
 				Type:     schema.TypeInt,
 				Optional: true,
 			},
 			"sla": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: ValidateUUID(),
 			},
 			"task_template": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: ValidateUUID(),
 			},
 			"team_priority": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:         schema.TypeString,
+				Optional:     true,
+				ValidateFunc: ValidateUUID(),
 			},
 		},
 	}
 }
 
-func CreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) *client.Services {
+func CreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) (*client.Services, error) {
 	new_service := &client.Services{}
 
 	if v, ok := d.GetOk("name"); ok {
@@ -80,7 +93,9 @@ func CreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) 
 		new_service.Collation = v.(int)
 	}
 	if v, ok := d.GetOk("collation_time"); ok {
+
 		new_service.Collation_Time = v.(int)
+
 	}
 	if v, ok := d.GetOk("sla"); ok {
 		new_service.Sla = v.(string)
@@ -91,8 +106,11 @@ func CreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) 
 	if v, ok := d.GetOk("team_priority"); ok {
 		new_service.Team_Priority = v.(string)
 	}
+	if new_service.Collation == 1 && new_service.Collation_Time == 0 {
+		return nil, fmt.Errorf("collation_time is required when collation is enabled")
 
-	return new_service
+	}
+	return new_service, nil
 }
 
 func resourceCreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -102,7 +120,12 @@ func resourceCreateServices(Ctx context.Context, d *schema.ResourceData, m inter
 	if team_id == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
-	new_service := CreateServices(Ctx, d, m)
+
+	new_service, serviceErr := CreateServices(Ctx, d, m)
+	if serviceErr != nil {
+		return diag.FromErr(serviceErr)
+	}
+
 	var diags diag.Diagnostics
 	service, err := apiclient.Services.CreateService(team_id, new_service)
 	if err != nil {
@@ -110,6 +133,8 @@ func resourceCreateServices(Ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	d.SetId(service.Unique_Id)
+	d.Set("team_id", team_id)
+
 	return diags
 }
 
@@ -121,7 +146,11 @@ func resourceUpdateServices(Ctx context.Context, d *schema.ResourceData, m inter
 	if team_id == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
-	new_service := CreateServices(Ctx, d, m)
+	new_service, serviceErr := CreateServices(Ctx, d, m)
+	if serviceErr != nil {
+		return diag.FromErr(serviceErr)
+
+	}
 
 	_, err := apiclient.Services.UpdateService(team_id, id, new_service)
 	if err != nil {
@@ -145,12 +174,13 @@ func resourceDeleteServices(Ctx context.Context, d *schema.ResourceData, m inter
 	}
 	return diags
 }
+
 func resourceReadServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
 	team_id := d.Get("team_id").(string)
 	id := d.Id()
-	if team_id == "" {
+	if emptyString(team_id) {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
 	var diags diag.Diagnostics
@@ -161,6 +191,27 @@ func resourceReadServices(Ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("name", service.Name)
 	d.Set("escalation_policy", service.Escalation_Policy)
 	d.Set("description", service.Description)
+	d.Set("summary", service.Summary)
+	d.Set("collation", service.Collation)
+	d.Set("collation_time", service.Collation_Time)
+	d.Set("sla", service.Sla)
+	d.Set("task_template", service.Task_Template)
+	d.Set("team_priority", service.Team_Priority)
+	d.Set("team_id", team_id)
 
 	return diags
+}
+
+func resourceServiceImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<service_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid service_id (%q)", parts[1])
+	}
+	d.Set("team_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }
