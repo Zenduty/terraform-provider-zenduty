@@ -119,7 +119,7 @@ func resourceTagImporter(d *schema.ResourceData, m interface{}) ([]*schema.Resou
 	} else if !IsValidUUID(parts[0]) {
 		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
 	} else if !IsValidUUID(parts[1]) {
-		return nil, fmt.Errorf("invalid tag (%q)", parts[1])
+		return nil, fmt.Errorf("invalid tag_id (%q)", parts[1])
 	}
 	d.Set("team_id", parts[0])
 	d.SetId(parts[1])

@@ -179,7 +179,7 @@ func buildScheduleLayerRescrition(new_layer *client.CreateLayers, layer_map map[
 	return nil, nil
 }
 
-func buildScheduleLayer(ctx context.Context, d *schema.ResourceData) ([]client.CreateLayers, diag.Diagnostics) {
+func buildScheduleLayer(TimeZone string, ctx context.Context, d *schema.ResourceData) ([]client.CreateLayers, diag.Diagnostics) {
 	layers := d.Get("layers").([]interface{})
 	Layers := make([]client.CreateLayers, len(layers))
 
@@ -204,9 +204,22 @@ func buildScheduleLayer(ctx context.Context, d *schema.ResourceData) ([]client.C
 		if v, ok := layer_map["rotation_start_time"]; ok {
 
 			new_layer.RotationStartTime = v.(string)
+			loc, _ := time.LoadLocation(TimeZone)
+
+			parsed_time, parse_err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+			if parse_err == nil {
+				new_layer.RotationStartTime = parsed_time.In(time.UTC).Format(time.RFC3339)
+			}
+
 		}
 		if v, ok := layer_map["rotation_end_time"]; ok {
 			new_layer.RotationEndTime = v.(string)
+			loc, _ := time.LoadLocation(TimeZone)
+			parsed_time, parsed_err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+			if parsed_err == nil {
+				new_layer.RotationEndTime = parsed_time.In(time.UTC).Format(time.RFC3339)
+			}
+
 		}
 		if v, ok := layer_map["users"]; ok {
 			users := v.([]interface{})
@@ -245,32 +258,33 @@ func buildScheduleOverride(new_schedule *client.CreateSchedule, d *schema.Resour
 		if v, ok := override["start_time"]; ok {
 
 			new_override.StartTime = v.(string)
-			parsed_time, err := time.Parse("2006-01-02 15:04", v.(string))
-			if err != nil {
-				return nil, diag.FromErr(errors.New(err.Error()))
-			}
+
 			loc, zone_err := time.LoadLocation(new_schedule.Time_zone)
 			if zone_err != nil {
 				return nil, diag.FromErr(errors.New(zone_err.Error()))
 			}
+			parsed_time, err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+			if err != nil {
+				return nil, diag.FromErr(errors.New(err.Error()))
+			}
 
-			new_override.StartTime = parsed_time.In(loc).Format(time.RFC3339)
+			new_override.StartTime = parsed_time.In(time.UTC).Format(time.RFC3339)
 
 		}
 		if v, ok := override["end_time"]; ok {
 			new_override.EndTime = v.(string)
-			parsed_end_time, err := time.Parse("2006-01-02 15:04", new_override.EndTime)
-
-			if err != nil {
-				return nil, diag.FromErr(errors.New(err.Error()))
-			}
 
 			loc, zone_err := time.LoadLocation(new_schedule.Time_zone)
 			if zone_err != nil {
 				return nil, diag.FromErr(errors.New(zone_err.Error()))
 			}
+			parsed_end_time, err := time.ParseInLocation("2006-01-02 15:04", new_override.EndTime, loc)
 
-			new_override.EndTime = parsed_end_time.In(loc).Format(time.RFC3339)
+			if err != nil {
+				return nil, diag.FromErr(errors.New(err.Error()))
+			}
+
+			new_override.EndTime = parsed_end_time.In(time.UTC).Format(time.RFC3339)
 
 		}
 		if v, ok := override["user"]; ok {
@@ -301,6 +315,10 @@ func createSchedule(Ctx context.Context, d *schema.ResourceData, m interface{}) 
 		if emptyString(v.(string)) {
 			return nil, diag.FromErr(errors.New("time_zone must not be empty"))
 		}
+		_, zone_err := time.LoadLocation(v.(string))
+		if zone_err != nil {
+			return nil, diag.FromErr(errors.New(zone_err.Error()))
+		}
 		new_schedule.Time_zone = v.(string)
 
 	}
@@ -312,7 +330,7 @@ func createSchedule(Ctx context.Context, d *schema.ResourceData, m interface{}) 
 
 	}
 
-	Layers, layerErr := buildScheduleLayer(Ctx, d)
+	Layers, layerErr := buildScheduleLayer(new_schedule.Time_zone, Ctx, d)
 	if layerErr != nil {
 		return nil, layerErr
 	}
@@ -397,31 +415,49 @@ func resourceReadSchedule(Ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("description", service.Description)
 	d.Set("time_zone", service.Time_zone)
 	d.Set("team_id", service.Team)
-	// if err := d.Set("layers", flattenLayer(service.Layers)); err != nil {
-	// 	return diag.FromErr(err)
-	// }
-	// if err := d.Set("overrides", flattenScheduleOverrides(service.Overrides)); err != nil {
-	// 	return diag.FromErr(err)
-	// }
+	if err := d.Set("layers", flattenLayer(service.Time_zone, service.Layers)); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("overrides", flattenScheduleOverrides(service.Time_zone, service.Overrides)); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
 
-func flattenLayer(layers []client.Layers) []map[string]interface{} {
+func flattenLayer(TimeZone string, layers []client.Layers) []map[string]interface{} {
 
 	var layer_list []map[string]interface{}
-	for _, layer := range layers {
+	for i, layer := range layers {
+		if emptyString(layer.Name) {
+			layer.Name = fmt.Sprintf("Layer-%d", i+1)
+		}
 		layer_list = append(layer_list, map[string]interface{}{
-			"name":         layer.Name,
-			"shift_length": layer.ShiftLength,
-			// "rotation_start_time": layer.RotationStartTime,
-			// "rotation_end_time":   layer.RotationEndTime,
-			"users":            flattenLayerUsers(layer.Users),
-			"restriction_type": layer.RestrictionType,
-			"restrictions":     flattenLayerRestrictions(layer.Restrictions),
+			"name":                layer.Name,
+			"shift_length":        layer.ShiftLength,
+			"rotation_start_time": createScheduleLayerTimeFormat(layer.RotationStartTime, TimeZone),
+			"rotation_end_time":   createScheduleLayerTimeFormat(layer.RotationEndTime, TimeZone),
+			"users":               flattenLayerUsers(layer.Users),
+			"restriction_type":    layer.RestrictionType,
+			"restrictions":        flattenLayerRestrictions(layer.Restrictions),
 		})
 	}
 	return layer_list
+
+}
+
+func createScheduleLayerTimeFormat(timestamp, Zone string) string {
+	RFC3339local := "2006-01-02T15:04:05Z"
+	loc, zone_err := time.LoadLocation(Zone)
+	if zone_err != nil {
+		return timestamp
+	}
+	t, parse_err := time.ParseInLocation(RFC3339local, timestamp, time.UTC)
+	if parse_err != nil {
+		return timestamp
+	}
+
+	return t.In(loc).Format("2006-01-02 15:04")
 
 }
 
@@ -439,6 +475,9 @@ func flattenLayerRestrictions(restrictions []client.Restrictions) []map[string]i
 
 	var restriction_list []map[string]interface{}
 	for _, restriction := range restrictions {
+		if restriction.Duration == 0 {
+			restriction.Duration = 1
+		}
 		restriction_list = append(restriction_list, map[string]interface{}{
 			"duration":          restriction.Duration,
 			"start_day_of_week": restriction.StartDayOfWeek,
@@ -449,14 +488,17 @@ func flattenLayerRestrictions(restrictions []client.Restrictions) []map[string]i
 
 }
 
-func flattenScheduleOverrides(overrides []client.Overrides) []map[string]interface{} {
+func flattenScheduleOverrides(TimeZone string, overrides []client.Overrides) []map[string]interface{} {
 
 	var override_list []map[string]interface{}
-	for _, override := range overrides {
+	for i, override := range overrides {
+		if emptyString(override.Name) {
+			override.Name = fmt.Sprintf("Override-%d", i+1)
+		}
 		override_list = append(override_list, map[string]interface{}{
 			"name":       override.Name,
-			"start_time": override.StartTime,
-			"end_time":   override.EndTime,
+			"start_time": createScheduleLayerTimeFormat(override.StartTime, TimeZone),
+			"end_time":   createScheduleLayerTimeFormat(override.EndTime, TimeZone),
 			"user":       override.User,
 		})
 	}

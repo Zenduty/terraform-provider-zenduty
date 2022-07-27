@@ -14,11 +14,29 @@ description: |-
 
 ## Example Usage
 ```hcl
-    resource "zenduty_services" "exampleservice" {
-        name = "example service"
-        team_id = "" // unique id of the team where the service will be created
-        escalation_policy = "" // unique id of the escalation policy to be used by the service
-    }
+
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+```
+
+```hcl
+resource "zenduty_esp" "example_esp" {
+    name = "example esp"
+    team_id = zenduty_teams.exampleteam.id
+    description = "this is an example esp"
+}
+
+```
+
+```hcl
+
+resource "zenduty_services" "exampleservice" {
+    name = "example service"
+    team_id = zenduty_teams.exampleteam.id 
+    escalation_policy = zenduty_esp.example_esp.id e
+}
 
 ```
 
@@ -34,6 +52,33 @@ description: |-
 * `sla` (Optional) - The SLA value for the service.
 * `task_template` (Optional) - The task template value for the service.
 * `team_priority` (Optional) - The team priority value for the service.
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Zenduty Service.
+
+## Import
+
+Services can be imported using the `team_id`(ie. unique_id of the team) and `service_id`(ie. unique_id of the service), e.g.
+
+```hcl
+resource "zenduty_services" "service1" {
+
+
+}
+```
+
+`$ terraform import zenduty_services.service1 team_id/service_id` 
+
+`$ terraform state show zenduty_services.service1`
+
+
+`* copy the output data and paste inside zenduty_services.service1 resource block and remove the id attribute`
+
+`$ terraform plan to verify the import`
 
 
 
