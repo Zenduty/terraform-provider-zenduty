@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/hashicorp/go-cty/cty"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -36,19 +38,25 @@ func emptyString(s string) bool {
 	return len(strings.TrimSpace(s)) == 0
 }
 
-func ValidateUUID() schema.SchemaValidateFunc {
-	return func(i interface{}, k string) (warnings []string, errors []error) {
-		v, ok := i.(string)
+func ValidateUUID() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		id, ok := v.(string)
 		if !ok {
-			errors = append(errors, fmt.Errorf("expected type of %s to be string", k))
-			return warnings, errors
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid",
+				Detail:   "expected type of string",
+			})
+		}
+		if !IsValidUUID(id) {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid ID",
+				Detail:   fmt.Sprintf("expected %s to be a valid UUID", path),
+			})
 		}
 
-		if !IsValidUUID(v) {
-			errors = append(errors, fmt.Errorf("expected %s to be a valid UUID", k))
-			return warnings, errors
-		}
-
-		return warnings, errors
+		return diags
 	}
 }

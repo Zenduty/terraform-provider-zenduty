@@ -3,6 +3,8 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
@@ -16,6 +18,9 @@ func resourceMaintenanceWindow() *schema.Resource {
 		UpdateContext: resourceUpdateManintenances,
 		DeleteContext: resourceDeleteManintenances,
 		ReadContext:   resourceReadManintenances,
+		Importer: &schema.ResourceImporter{
+			State: resourceMaintenanceImporter,
+		},
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -23,8 +28,9 @@ func resourceMaintenanceWindow() *schema.Resource {
 				Required: true,
 			},
 			"team_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 			"start_time": {
 				Type:     schema.TypeString,
@@ -81,16 +87,16 @@ func ValidateMaintenanceWindow(Ctx context.Context, d *schema.ResourceData, m in
 		}
 
 		new_manintence.StartTime = v.(string)
-		parsed_time, err := time.Parse("2006-01-02 15:04", v.(string))
-		if err != nil {
-			return nil, diag.FromErr(errors.New(err.Error()))
-		}
+
 		loc, zone_err := time.LoadLocation(new_manintence.TimeZone)
 		if zone_err != nil {
 			return nil, diag.FromErr(errors.New(zone_err.Error()))
 		}
-
-		new_manintence.StartTime = parsed_time.In(loc).Format(time.RFC3339)
+		parsed_time, err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+		if err != nil {
+			return nil, diag.FromErr(errors.New(err.Error()))
+		}
+		new_manintence.StartTime = parsed_time.In(time.UTC).Format(time.RFC3339)
 
 	}
 	if v, ok := d.GetOk("end_time"); ok {
@@ -99,16 +105,16 @@ func ValidateMaintenanceWindow(Ctx context.Context, d *schema.ResourceData, m in
 		}
 		new_manintence.EndTime = v.(string)
 
-		parsed_time, err := time.Parse("2006-01-02 15:04", v.(string))
-		if err != nil {
-			return nil, diag.FromErr(errors.New(err.Error()))
-		}
 		loc, zone_err := time.LoadLocation(new_manintence.TimeZone)
 		if zone_err != nil {
 			return nil, diag.FromErr(errors.New(zone_err.Error()))
 		}
+		parsed_time, err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+		if err != nil {
+			return nil, diag.FromErr(errors.New(err.Error()))
+		}
 
-		new_manintence.EndTime = parsed_time.In(loc).Format(time.RFC3339)
+		new_manintence.EndTime = parsed_time.In(time.UTC).Format(time.RFC3339)
 	}
 
 	if v, ok := d.GetOk("repeat_interval"); ok {
@@ -125,7 +131,16 @@ func ValidateMaintenanceWindow(Ctx context.Context, d *schema.ResourceData, m in
 			return nil, diag.FromErr(errors.New("repeat_until is invalid"))
 		}
 
-		new_manintence.RepeatUntil = v.(string)
+		loc, zone_err := time.LoadLocation(new_manintence.TimeZone)
+		if zone_err != nil {
+			return nil, diag.FromErr(errors.New(zone_err.Error()))
+		}
+
+		parsed_time, err := time.ParseInLocation("2006-01-02 15:04", v.(string), loc)
+		if err != nil {
+			return nil, diag.FromErr(errors.New(err.Error()))
+		}
+		new_manintence.RepeatUntil = parsed_time.In(time.UTC).Format(time.RFC3339)
 	}
 	for _, service := range services {
 		if service.(string) == "" {
@@ -209,8 +224,45 @@ func resourceReadManintenances(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 	d.Set("name", maintenance.Name)
+	d.Set("repeat_interval", maintenance.RepeatInterval)
+	start_time, time_err := createMaintenanceTimeFormat(maintenance.StartTime, maintenance.TimeZone)
+	end_time, end_time_err := createMaintenanceTimeFormat(maintenance.EndTime, maintenance.TimeZone)
+	repeat_until, repeat_until_err := createMaintenanceTimeFormat(maintenance.RepeatUntil, maintenance.TimeZone)
+	if repeat_until_err == nil {
+		d.Set("repeat_until", repeat_until)
+	}
+
+	if time_err == nil && end_time_err == nil {
+		d.Set("start_time", start_time)
+		d.Set("end_time", end_time)
+	}
+	d.Set("services", flattenServices(maintenance.Services))
+	d.Set("timezone", maintenance.TimeZone)
 
 	return nil
+}
+
+func flattenServices(services []client.ServiceMaintenance) []interface{} {
+	var services_list []interface{}
+	for _, service := range services {
+		services_list = append(services_list, service.Service)
+	}
+	return services_list
+}
+
+func createMaintenanceTimeFormat(timestamp, Zone string) (string, error) {
+	RFC3339local := "2006-01-02T15:04:05Z"
+	loc, zone_err := time.LoadLocation(Zone)
+	if zone_err != nil {
+		return "", zone_err
+	}
+	t, parse_err := time.ParseInLocation(RFC3339local, timestamp, time.UTC)
+	if parse_err != nil {
+		return "", parse_err
+	}
+
+	return t.In(loc).Format("2006-01-02 15:04"), nil
+
 }
 
 func resourceDeleteManintenances(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -227,4 +279,18 @@ func resourceDeleteManintenances(ctx context.Context, d *schema.ResourceData, m 
 		return diag.FromErr(err)
 	}
 	return nil
+}
+
+func resourceMaintenanceImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<maintenance_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid maintenance (%q)", parts[1])
+	}
+	d.Set("team_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }

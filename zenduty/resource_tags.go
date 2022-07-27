@@ -3,6 +3,8 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,6 +17,9 @@ func resourceTags() *schema.Resource {
 		UpdateContext: resourceUpdateTags,
 		DeleteContext: resourceDeleteTags,
 		ReadContext:   resourceReadTag,
+		Importer: &schema.ResourceImporter{
+			State: resourceTagImporter,
+		},
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -26,8 +31,9 @@ func resourceTags() *schema.Resource {
 				Required: true,
 			},
 			"team_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 		},
 	}
@@ -104,4 +110,18 @@ func resourceReadTag(ctx context.Context, d *schema.ResourceData, m interface{})
 	d.Set("color", tag.Color)
 	d.Set("team_id", tag.Team)
 	return nil
+}
+
+func resourceTagImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<tag_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid tag (%q)", parts[1])
+	}
+	d.Set("team_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }
