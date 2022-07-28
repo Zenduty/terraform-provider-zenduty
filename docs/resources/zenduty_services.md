@@ -32,7 +32,7 @@ resource "zenduty_esp" "example_esp" {
 resource "zenduty_services" "exampleservice" {
     name = "example service"
     team_id = zenduty_teams.exampleteam.id 
-    escalation_policy = zenduty_esp.example_esp.id e
+    escalation_policy = zenduty_esp.example_esp.id 
 }
 
 ```
