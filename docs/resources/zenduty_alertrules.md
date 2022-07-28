@@ -1,8 +1,9 @@
+---
 page_title: "Zenduty Alert Rules"
 subcategory: ""
 description: |-
     " `zenduty_alertrules` is a resource to manage alert rules in a integration"
-
+---
 # zenduty_alertrules (Resource)
 `zenduty_alertrules` is a resource to manage alert rules in a integration
 
