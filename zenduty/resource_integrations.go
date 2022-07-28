@@ -58,16 +58,19 @@ func resourceIntegrations() *schema.Resource {
 			"is_enabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
+				Default:  true,
 			},
 			"create_incident_for": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 3),
+				Default:      1,
 			},
 			"default_urgency": {
 				Type:         schema.TypeInt,
 				Optional:     true,
 				ValidateFunc: validation.IntBetween(0, 1),
+				Default:      1,
 			},
 		},
 	}
@@ -110,8 +113,7 @@ func resourceIntegrationCreate(ctx context.Context, d *schema.ResourceData, m in
 	d.Set("integration_key", integration.Integration_key)
 	d.Set("is_enabled", integration.Is_Enabled)
 	d.Set("webhook_url", integration.Webhook_url)
-	d.Set("create_incident_for", integration.Create_Incident_For)
-	d.Set("default_urgency", integration.Default_Urgency)
+
 	return diags
 }
 

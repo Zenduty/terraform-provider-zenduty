@@ -19,9 +19,6 @@ resource "zenduty_teams" "exampleteam" {
   name = "exmaple team"
 }
 
-```
-
-```hcl
 resource "zenduty_esp" "example_esp" {
     name = "example esp"
     team_id = zenduty_teams.exampleteam.id

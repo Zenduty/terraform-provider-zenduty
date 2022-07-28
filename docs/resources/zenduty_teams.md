@@ -47,7 +47,7 @@ Teams can be imported using the `team_id`(ie. unique_id of the team), e.g.
 `$ terraform state show zenduty_teams.team1`
 
 `copy the output data and paste inside zenduty_teams.team1 resource block and remove the id attribute`
-`terraform plan to verify the import`
+`$ terraform plan` to verify the import
 
 
 

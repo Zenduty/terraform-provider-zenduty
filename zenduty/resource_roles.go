@@ -160,7 +160,7 @@ func resourceIncidentRoleImporter(d *schema.ResourceData, m interface{}) ([]*sch
 	} else if !IsValidUUID(parts[0]) {
 		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
 	} else if !IsValidUUID(parts[1]) {
-		return nil, fmt.Errorf("invalid role (%q)", parts[1])
+		return nil, fmt.Errorf("invalid role_id (%q)", parts[1])
 	}
 	d.Set("team", parts[0])
 	d.SetId(parts[1])

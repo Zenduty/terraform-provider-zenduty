@@ -11,12 +11,23 @@ description: |-
 `zenduty_schedules` is a resource to manage schedules in a team
 
 
-## Example Usage    
-```hcl
 
-resource "zenduty_schedules" "schedule1" {
-  name = ""
-  team_id = ""
+
+## Example Usage   
+
+
+
+```hcl
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+```
+
+
+```hcl
+resource "zenduty_schedules" "exampleschedule" {
+  name = "exmaple schedule"
+  team_id = zenduty_teams.exampleteam.id
   time_zone = ""  
 }
 
@@ -27,7 +38,7 @@ resource "zenduty_schedules" "schedule1" {
 
 * `team_id` (Required) - The unique_id of the team to create the escalation policy in.
 * `name` (Required) - The name of the schedule.
-* `time_zone` (Required) - The time_zone of the schedule. ex: "Asia/Kolkata"
+* `time_zone` (Required) - The time_zone of the schedule. ex: "Asia/Kolkata","UTC"
 * `layers`(Optional) - The layers of the schedule. (see [below for nested schema](#nestedblock--layers))
 * `overrides`(Optional) - The overrides of the schedule. (see [below for nested schema](#nestedblock--overrides))
 * `description` (Optional) - The description of the schedule.
@@ -37,17 +48,24 @@ resource "zenduty_schedules" "schedule1" {
 
 
 <a id="nestedblock--layers"></a>
+
+```hcl
+data "zenduty_user" "user1" {
+  email = "demouser@gmail.com"
+}
+
+```
 ## layers
 
 ```hcl
 
 layers {
-    name = ""
+    name = "layer1"
     restriction_type = ""
     rotation_end_time = ""
     rotation_start_time = ""
-    shift_length = ""
-    users = []
+    shift_length = 3600
+    users = [data.zenduty_user.user1.users[0].username]
 
   }
 
@@ -56,9 +74,9 @@ layers {
 ## Argument Reference
 * `name` (Required) - The name of the layer.
 * `time_zone` (Required) - The time_zone of the layer. ex: "Asia/Kolkata"
-* `rotation_end_time` (Required) - The rotation_end_time of the layer.
-* `rotation_start_time` (Required) - The rotation_start_time of the layer.
-* `shift_length` (Required) (Number) - The shift_length of the layer.
+* `rotation_end_time` (Required) - The rotation_end_time of the layer in format YYYY-MM-DD HH:MM.
+* `rotation_start_time` (Required) - The rotation_start_time of the layer in format YYYY-MM-DD HH:MM.
+* `shift_length` (Required) (Number) - The shift_length of the layer in seconds.
 * `users`(Required) -  Array of username of users
 * `restriction_type` (Required)(Number) - The restriction_type of the layer. ex: 1 for day, 2 for week ,0 for default
 * `restrictions`(Optional) - The restrictions of the layer. (see [below for nested schema](#nestedblock--restrictions))
@@ -91,7 +109,7 @@ layers {
   rotation_end_time = ""
   rotation_start_time = ""
   shift_length = ""
-  users = []
+  users = [data.zenduty_user.user1.users[0].username]
   restrictions {
     start_time_of_day = "08:00:00"
     start_day_of_week = 7 
@@ -122,10 +140,10 @@ layers {
 
 
 <a id="nestedblock--overrides"></a>
-## layers
 
-```hcl
-## Schedule Override
+## Overrides
+
+
 
 ```hcl
 overrides { 
@@ -138,11 +156,37 @@ overrides {
 ```
 ## Argument Reference
 * `name` (Required) - The name of the override.
-* `start_time` (Required) - The start_time of the override. time in YYYY-MM-DD HH:MM format in UTC.
-* `end_time` (Required) - The end_time of the override. time in YYYY-MM-DD HH:MM format format in UTC.
+* `start_time` (Required) - The start_time of the override. time in YYYY-MM-DD HH:MM.
+* `end_time` (Required) - The end_time of the override. time in YYYY-MM-DD HH:MM.
 * `user` (Required) - The user of the override.
 
 
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Schedule.
+
+
+## Import
+
+Team Schedules can be imported using the `team_id`(ie. unique_id of the team) and `schedule_id`(ie. unique_id of the schedule), e.g.
+
+```hcl
+resource "zenduty_schedules" "schedule1" {
+
+
+}
+```
+
+`$ terraform import zenduty_schedules.schedule1 team_id/schedule_id` 
+
+`$ terraform state show zenduty_schedules.schedule1`
+
+`* copy the output data and paste inside zenduty_schedules.schedule1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
 
 
 
@@ -150,14 +194,14 @@ overrides {
 
 ```hcl
 
-resource "zenduty_schedules" "schedule3" {
+resource "zenduty_schedules" "demo_schedule" {
   name = "Infra Schedule"
-  team_id = ""
+  team_id = zenduty_teams.exampleteam.id
   time_zone = "Asia/Kolkata" 
   layers {
     name = "layer1"
-    rotation_end_time = "2023-02-09T16:21:00+05:30"
-    rotation_start_time = "2022-02-09T12:21:11+05:30"
+    rotation_end_time = "2021-03-01 11:36"
+    rotation_start_time = "2022-03-01 11:36"
     shift_length = 86400
     users = ["user1", "user2"]
     restriction_type = 2 # 1 for daily, 2 for week, 0 for default
@@ -185,7 +229,7 @@ resource "zenduty_schedules" "schedule3" {
   overrides { 
     name = "example override"
     start_time = "2021-03-01 11:36"
-    end_time = "2021-04-02 00:00"
+    end_time = "2021-03-02 11:36"
     user = ""  
   }
 }

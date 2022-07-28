@@ -10,14 +10,36 @@ description: |-
 # Resource : zenduty_maintenance_window 
 Provides a Zenduty Maintenance Window Resource. This allows Maintenance Window to be created, updated, and deleted.    
 ## Example Usage
+
+```hcl
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+resource "zenduty_esp" "example_esp" {
+  name = "example esp"
+  team_id = zenduty_teams.exampleteam.id
+  description = "this is an example esp"
+}
+
+resource "zenduty_services" "exampleservice" {
+  name = "example service"
+  team_id = zenduty_teams.exampleteam.id 
+  escalation_policy = zenduty_esp.example_esp.id e
+}
+
+
+
+```
+
 ```hcl
 resource "zenduty_maintenance_window" "example_maintenance_window" {
   name = "example maintenance window"
-  team_id = ""
+  team_id = zenduty_teams.exampleteam.id
   start_time = ""
   end_time = ""
   timezone = ""
-  services = ["service1_id"]
+  services = [zenduty_services.exampleservice.id] 
 }
 
 ```
@@ -27,9 +49,35 @@ resource "zenduty_maintenance_window" "example_maintenance_window" {
 
 * `name` - (Required) The name of the maintenance window.
 * `team_id` - (Required) The unique_id of the team to create the maintenance window in.
-* `start_time` - (Required) The start time of the maintenance window in the format of "YYYY-MM-DD HH:MM" in UTC.
-* `end_time` - (Required) The end time of the maintenance window in the format of "YYYY-MM-DD HH:MM" in UTC.
+* `start_time` - (Required) The start time of the maintenance window in the format of "YYYY-MM-DD HH:MM".
+* `end_time` - (Required) The end time of the maintenance window in the format of "YYYY-MM-DD HH:MM".
 * `timezone` - (Required) The timezone of the maintenance window.
 * `services` - (Required) The service ids that are associated with the maintenance window.
 * `repeat_interval` - (Optional)(Number) The repeat interval of the maintenance window.
-* `repeat_until` - (Optional)(String) The repeat until of the maintenance window in the format of "YYYY-MM-DD HH:MM" in UTC .
+* `repeat_until` - (Optional)(String) The repeat until of the maintenance window in the format of "YYYY-MM-DD HH:MM".
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Zenduty Service Maintenance.
+
+## Import 
+
+Service Maintenance can be imported using the `team_id`(ie. unique_id of the team) and `maintenance_id`(ie. unique_id of the maintenance), e.g.
+
+```hcl
+resource "zenduty_maintenance_window" "maintenance1" {
+
+
+}
+```
+
+`$ terraform import zenduty_maintenance_window.maintenance1 team_id/maintenance_id` 
+
+`$ terraform state show zenduty_maintenance_window.maintenance1`
+
+`* copy the output data and paste inside zenduty_maintenance_window.maintenance1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import

@@ -11,24 +11,34 @@ description: |-
 `zenduty_esp` is a resource to manage escalation policies in a team 
 
 ## Example Usage
+```hcl
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+resource "zenduty_schedules" "example_schedule" {
+  name = "exmaple schedule"
+  team_id = zenduty_teams.exampleteam.id
+  time_zone = ""  
+}
+
+data "zenduty_user" "user1" {
+  email = "demouser@gmail.com"
+}
+
+
+```
+
+
 ```hcl 
 
 resource "zenduty_esp" "example_esp" {
-    name = "" 
-    team_id = ""
+    name = "example escalation_policy"
+    team_id = zenduty_teams.exampleteam.id
     description = ""
 }
 
 ```
-## Argument Reference
-
-* `team_id` (Required) - The unique_id of the team to create the escalation policy in.
-* `name` (Required) - The name of the escalation policy.
-* `description` (Required) - The description of the escalation policy
-* `summary` (Optional) - The summary of the escalation policy.
-* `rules` (Optional) - The rules of the escalation policy. (see [below for nested schema](#nestedblock--rules))
-* `move_to_next` (Optional) - The move_to_next of the escalation policy.
-* `repeat_policy` (Optional) - The repeat_policy of the escalation policy.
 
 <a id="nestedblock--rules"></a>
 ## Rules
@@ -37,6 +47,8 @@ resource "zenduty_esp" "example_esp" {
         delay = ""
         #targets
     }
+
+
 ```
 * `delay` (Required) (Number) - The delay of the rule in minutes.
 * `targets` (see [below for nested schema](#nestedblock--rules--targets))
@@ -48,6 +60,8 @@ resource "zenduty_esp" "example_esp" {
         target_type = ""
         target_id = ""
     }
+
+
 ```
 * `target_type` (Required) (Number) -  values are `1` for schedule `2` for user
 * `target_id` (Required) (String) -  username of the user to assign. or unique_id of schedule 
@@ -64,12 +78,12 @@ resource "zenduty_esp" "esp1" {
         delay = 0    
         targets {
             target_type = 2
-            target_id = "" //username of user
+            target_id = data.zenduty_user.user1.users[0].username  //username of user
     
         }
         targets {
             target_type = 1
-            target_id = "" // unique id of the schedule
+            target_id = zenduty_schedules.example_schedule.id    // unique id of the schedule
         }
     
     }
@@ -91,6 +105,47 @@ resource "zenduty_esp" "esp1" {
 }
 
 ```
+
+## Argument Reference
+
+* `team_id` (Required) - The unique_id of the team to create the escalation policy in.
+* `name` (Required) - The name of the escalation policy.
+* `description` (Required) - The description of the escalation policy
+* `summary` (Optional) - The summary of the escalation policy.
+* `rules` (Optional) - The rules of the escalation policy. (see [above for nested schema](#nestedblock--rules))
+* `move_to_next` (Optional) - The move_to_next of the escalation policy.
+* `repeat_policy` (Optional) - The repeat_policy of the escalation policy.
+* `delay` (Required) (Number) - The delay of the rule in minutes.
+* `targets` (see [above for nested schema](#nestedblock--rules--targets))
+* `target_type` (Required) (Number) -  values are `1` for schedule `2` for user
+* `target_id` (Required) (String) -  username of the user to assign. or unique_id of schedule 
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Escalation Policy.
+
+## Import
+
+Escalation Policy can be imported using the `team_id`(ie. unique_id of the team) and `esp_id`(ie. unique_id of the escalation policy), e.g.
+
+```hcl
+resource "zenduty_esp" "esp1" {
+
+}
+```
+`$ terraform import zenduty_esp.esp1 team_id/esp_id` 
+
+`$ terraform state show zenduty_esp.esp1`
+
+`* copy the output data and paste inside zenduty_esp.esp1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
+
+
+
 
 
 

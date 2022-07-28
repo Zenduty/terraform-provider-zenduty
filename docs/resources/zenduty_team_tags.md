@@ -22,7 +22,7 @@ resource "zenduty_teams" "exampleteam" {
 
 resource "zenduty_tags" "example_tag" {
   name = "Incident Lead"
-  team_id = "zenduty_teams.exampleteam.id"
+  team_id = zenduty_teams.exampleteam.id
   color = ""  
 }
 
@@ -59,7 +59,7 @@ resource "zenduty_tags" "tag1" {
 
 `* copy the output data and paste inside zenduty_tags.tag1 resource block and remove the id attribute`
 
-`$ terraform plan to verify the import`
+`$ terraform plan` to verify the import
 
 
 
