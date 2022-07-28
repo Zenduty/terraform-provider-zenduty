@@ -34,6 +34,23 @@ output "zenduty_maintenance_window" {
 * `team_id`(Required) - The UniqueID of the team to query.
 
 
+## Attributes Reference
+
+The following attributes are exported as list of maps:
+
+
+* `name` -  The name of the maintenance window.
+* `unique_id` - The unique_id of the maintenance window.
+* `team_id` - The unique_id of the team to create the maintenance window in.
+* `start_time` - The start time of the maintenance window in the format of "YYYY-MM-DD HH:MM".
+* `end_time` -  The end time of the maintenance window in the format of "YYYY-MM-DD HH:MM".
+* `timezone` -  The timezone of the maintenance window.
+* `services` -  The service ids that are associated with the maintenance window.These attributes  are returned as a list of maps.
+    * `service` - The unique_id of the service.
+* `repeat_interval` -  The repeat interval of the maintenance window.
+* `repeat_until` -  The repeat until of the maintenance window in the format of "YYYY-MM-DD HH:MM".
+
+
 
 
 

@@ -78,7 +78,7 @@ layers {
 * `rotation_start_time` (Required) - The rotation_start_time of the layer in format YYYY-MM-DD HH:MM.
 * `shift_length` (Required) (Number) - The shift_length of the layer in seconds.
 * `users`(Required) -  Array of username of users
-* `restriction_type` (Required)(Number) - The restriction_type of the layer. ex: 1 for day, 2 for week ,0 for default
+* `restriction_type` (Required)(Number) - The restriction_type of the layer. ex: `1` for day, `2` for week ,`0` for default
 * `restrictions`(Optional) - The restrictions of the layer. (see [below for nested schema](#nestedblock--restrictions))
 
 
