@@ -2,12 +2,15 @@ package zenduty
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceRoles() *schema.Resource {
@@ -16,10 +19,14 @@ func resourceRoles() *schema.Resource {
 		UpdateContext: resourceRoleUpdate,
 		DeleteContext: resourceRoleDelete,
 		ReadContext:   resourceRoleRead,
+		Importer: &schema.ResourceImporter{
+			State: resourceIncidentRoleImporter,
+		},
 		Schema: map[string]*schema.Schema{
 			"team": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 			"unique_id": {
 				Type:     schema.TypeString,
@@ -38,8 +45,10 @@ func resourceRoles() *schema.Resource {
 				Required: true,
 			},
 			"rank": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(1, 10),
+				Default:      1,
 			},
 		},
 	}
@@ -129,5 +138,31 @@ func resourceRoleDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 func resourceRoleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return nil
+	apiclient, _ := m.(*Config).Client()
+	id := d.Id()
+	team_id := d.Get("team").(string)
+	var diags diag.Diagnostics
+	role, err := apiclient.Roles.GetRolesById(team_id, id)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	d.Set("title", role.Title)
+	d.Set("description", role.Description)
+	d.Set("rank", role.Rank)
+	return diags
+
+}
+
+func resourceIncidentRoleImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<role_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid role_id (%q)", parts[1])
+	}
+	d.Set("team", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }

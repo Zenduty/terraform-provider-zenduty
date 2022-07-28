@@ -11,9 +11,16 @@ description: |-
 Provides a Zenduty Priorities Resource. This allows Priorities to be created, updated, and deleted.    
 ## Example Usage
 ```hcl
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+```
+
+```hcl
 resource "zenduty_priorities" "example_priority" {
   name = "P1"
-  team_id = ""
+  team_id = zenduty_teams.exampleteam.id
   color = "red"
 }
 
@@ -26,3 +33,30 @@ resource "zenduty_priorities" "example_priority" {
 * `name` - (Required) The name of the priority.
 * `color` - (Required) The color of the tag values are one  of the following magenta, red, volcano, orange, gold, lime, green, cyan, blue, geekblue, purple
 * `description` - (Optional) The description of the priority.
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Incident Priority.
+
+## Import
+
+Incident Priority can be imported using the `team_id`(ie. unique_id of the team) and `priority_id`(ie. unique_id of the priority), e.g.
+
+```hcl
+resource "zenduty_priorities" "priority1" {
+
+}
+```
+
+`$ terraform import zenduty_priorities.priority1 team_id/priority_id` 
+
+`$ terraform state show zenduty_priorities.priority1`
+
+`* copy the output data and paste inside zenduty_priorities.priority1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
+
+
+

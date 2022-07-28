@@ -10,11 +10,22 @@ description: |-
 `zenduty_member` is a resource to manage Zenduty members.
 
 ## Example Usage
+```hcl
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+data "zenduty_user" "user1" {
+  email = "demouser@gmail.com"
+}
+
+```
+
 
 ```hcl
 resource "zenduty_member" "example_user" {
-   team = ""   
-   user = ""  
+   team = zenduty_teams.exampleteam.id
+   user = data.zenduty_user.user1.users[0].username
 }
 
 ```
@@ -26,6 +37,12 @@ resource "zenduty_member" "example_user" {
 * `role` (Optional) - The role of the user in the team -> manager(role = `1`),user(role = `2`) .
 
 
+### Attributes Reference
+
+
+The following attributes are exported:
+
+* `id` - The ID of the Team Member.
 
 
 

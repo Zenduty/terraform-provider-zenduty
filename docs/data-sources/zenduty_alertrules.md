@@ -38,6 +38,25 @@ output "zenduty_alertrules" {
 * `integration_id`(Required) - unique_id of the integration
 * `alert_rule_id`(Optional) - unique_id of the alert rule
 
+## Attributes Reference
+
+The following attributes are exported as list of maps:
+
+* `unique_id` - The unique_id of the alert rule
+* `description` - The description of the alert rule
+* `rule_json` - The JSON representation of the alert rule
+* `actions` - The actions of the alert rule as a list of maps:
+    * `unique_id` - The unique_id of the action
+    * `action_type` - The type of the action
+    * `escalation_policy` - Unique id of the escalation policy (only if action_type ` 4`)
+    * `assign_to` - The assign_to of the action (only if action_type is `6`)
+    * `sla` - Unique_id of the sla (only if action_type is `14`)
+    * `team_priority` Unique_id of the team priority (only if action_type is `15`)
+    * `value` - The value of the action (only if action_type not in `3`, `4`, `6`, `14`, `15`)
+
+
+
+
 
 
 

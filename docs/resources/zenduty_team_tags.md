@@ -11,9 +11,18 @@ description: |-
 Provides a Zenduty Tags Resource. This allows Tags to be created, updated, and deleted.    
 ## Example Usage
 ```hcl
+
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
+
+```
+
+```hcl
+
 resource "zenduty_tags" "example_tag" {
   name = "Incident Lead"
-  team_id = ""
+  team_id = zenduty_teams.exampleteam.id
   color = ""  
 }
 
@@ -25,6 +34,32 @@ resource "zenduty_tags" "example_tag" {
 * `team` - (Required) The unique_id of team to create the tag in.
 * `name` - (Required) The name of the tag.
 * `color` - (Required) The color of the tag values are one  of the following magenta, red, volcano, orange, gold, lime, green, cyan, blue, geekblue, purple
+
+
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Zenduty Tag.
+
+## Import
+
+Team Tags can be imported using the `team_id`(ie. unique_id of the team) and `tag_id`(ie. unique_id of the tag), e.g.
+
+```hcl
+resource "zenduty_tags" "tag1" {
+
+
+}
+```
+
+`$ terraform import zenduty_tags.tag1 team_id/tag_id` 
+
+`$ terraform state show zenduty_tags.tag1`
+
+`* copy the output data and paste inside zenduty_tags.tag1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
 
 
 

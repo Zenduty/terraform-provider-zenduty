@@ -22,7 +22,7 @@ data "zenduty_tags" "production_tags" {
 
 ```hcl
 
-output "zenduty_tags" {" { 
+output "zenduty_tags" { 
   value = data.zenduty_tags.production_tags.tags
 }
 

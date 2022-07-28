@@ -1,21 +1,43 @@
+---
 page_title: "Zenduty Alert Rules"
 subcategory: ""
 description: |-
     " `zenduty_alertrules` is a resource to manage alert rules in a integration"
-
+---
 # zenduty_alertrules (Resource)
 `zenduty_alertrules` is a resource to manage alert rules in a integration
 
 
 ## Example Usage
 
+```hcl
+resource "zenduty_teams" "exampleteam" {
+    name = "exmaple team"
+}
+
+resource "zenduty_services" "exampleservice" {
+    name = "example service"
+    team_id = zenduty_teams.exampleteam.id 
+    escalation_policy = zenduty_esp.example_esp.id e
+}
+
+resource "zenduty_integrations" "exampleintegration" {
+    team_id = zenduty_teams.exampleteam.id
+    service_id = zenduty_services.exampleservice.id
+    application = ""
+    name = "exampleintegration"
+    summary = "This is the summary for the example integration"
+}
+
+```
+
 ```hcl 
 resource "zenduty_alertrules" "example_alertrules" {
   
     description = "This is the description for the new alert rules"
-    team_id = ""
-    service_id = ""
-    integration_id = ""
+    team_id = zenduty_teams.exampleteam.id
+    service_id = zenduty_services.exampleservice.id
+    integration_id = zenduty_integrations.exampleintegration.id
     rule_json = "" 
     #actions
 }
@@ -28,6 +50,7 @@ resource "zenduty_alertrules" "example_alertrules" {
 * `service_id` (Required) - The unique_id of the service to create the alert rule in.
 * `integration_id` (Required) - The unique_id of the integration to create the alert rule in.
 * `description` (Required) - The description of the alert rule.
+* `rule_json` (Required)(string) - The rule json of the alert rule.You cannot construct the rule json in terraform as of now.One can construct the rule json in Zenduty's UI.Create an dummy alert rule in Zenduty and copy the rule_json from the UI.
 * `actions` (Optional) - The rules of the escalation policy. (see [below for nested schema](#nestedblock--actions))
 
 
@@ -61,6 +84,30 @@ resource "zenduty_alertrules" "example_alertrules" {
 * `key`  (Optional)(string) - The key of the action. (required for `11`)
 
 
+## Attributes Reference
+
+The following attributes are exported:
+
+* `id` - The ID of the Alert Rule.
+
+## Import
+
+Integrations can be imported using the `team_id`(ie. unique_id of the team), `service_id`(ie. unique_id of the service),`integration_id`(ie. unique_id of the integration) and `alertrule_id`(ie. unique_id of the alert rule).
+
+```hcl
+resource "zenduty_alertrules" "rule1" {
+
+}
+
+```
+
+`$ terraform import zenduty_alertrules.rule1 team_id/service_id/integration_id/alertrule_id` 
+
+`$ terraform state show zenduty_alertrules.rule1`
+
+`* copy the output data and paste inside zenduty_alertrules.rule1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
 
 
 

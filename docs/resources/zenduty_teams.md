@@ -12,9 +12,9 @@ Provides a Zenduty Team Resource. This allows Teams to be created, updated, and 
 
 ## Example Usage
 ```hcl
-  resource "zenduty_teams" "exampleteam" {
-      name = "exmaple team"
-    }
+resource "zenduty_teams" "exampleteam" {
+  name = "exmaple team"
+}
 
 ```
 
@@ -25,4 +25,27 @@ Provides a Zenduty Team Resource. This allows Teams to be created, updated, and 
 * `name` (Required) - Name of the Team (unique) to create team
 
 
+## Attributes Reference
 
+The following attributes are exported:
+
+* `id` - The ID of the Zenduty Team.
+
+## Import
+
+Teams can be imported using the `team_id`(ie. unique_id of the team), e.g.
+
+```hcl
+  resource "zenduty_teams" "team1" {
+  
+  }
+
+```
+
+`$ terraform import zenduty_teams.team1 team_id` 
+
+`$ terraform state show zenduty_teams.team1`
+
+`copy the output data and paste inside zenduty_teams.team1 resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import

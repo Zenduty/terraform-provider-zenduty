@@ -18,8 +18,9 @@ func resourceMembers() *schema.Resource {
 		DeleteContext: resourceMemberDelete,
 		Schema: map[string]*schema.Schema{
 			"team": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 			"user": {
 				Type:     schema.TypeString,
@@ -28,6 +29,7 @@ func resourceMembers() *schema.Resource {
 			"role": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Default:  2,
 			},
 		},
 	}
@@ -115,6 +117,7 @@ func resourceMemberRead(ctx context.Context, d *schema.ResourceData, m interface
 	d.SetId(member.Unique_Id)
 	d.Set("team", member.Team)
 	d.Set("user", member.User)
+	d.Set("role", member.Role)
 
 	return diags
 }

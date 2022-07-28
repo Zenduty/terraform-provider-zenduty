@@ -36,6 +36,7 @@ func Provider() *schema.Provider {
 			"zenduty_tags":               resourceTags(),
 			"zenduty_priorities":         resourcePriority(),
 			"zenduty_maintenance_window": resourceMaintenanceWindow(),
+			"zenduty_notification_rules": resourceNotificationRules(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -51,6 +52,7 @@ func Provider() *schema.Provider {
 			"zenduty_tags":               dataSourceTags(),
 			"zenduty_priorities":         dataSourcePriorities(),
 			"zenduty_maintenance_window": dataSourceMaintenanceWindow(),
+			"zenduty_usercontact":        dataSourceUserContacts(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

@@ -3,7 +3,9 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -16,6 +18,9 @@ func resourceAlertRules() *schema.Resource {
 		UpdateContext: resourceUpdateAlertRules,
 		DeleteContext: resourceDeleteAlertRules,
 		ReadContext:   resourceReadAlertRules,
+		Importer: &schema.ResourceImporter{
+			State: resourceAlertRulesImporter,
+		},
 		Schema: map[string]*schema.Schema{
 			"description": {
 				Type:     schema.TypeString,
@@ -26,16 +31,19 @@ func resourceAlertRules() *schema.Resource {
 				Optional: true,
 			},
 			"team_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 			"service_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 			"integration_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 
 			"actions": &schema.Schema{
@@ -241,7 +249,36 @@ func resourceReadAlertRules(Ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	d.SetId(rule.Unique_Id)
+	d.Set("rule_json", rule.RuleJson)
+	d.Set("actions", flattenAlertActions(rule))
+	d.Set("description", rule.Description)
+
 	return diags
+}
+func flattenAlertActions(rule *client.AlertRule) []map[string]interface{} {
+	var actions_list []map[string]interface{}
+	for _, action := range rule.Actions {
+		new_action := map[string]interface{}{}
+		new_action["action_type"] = action.ActionType
+		if action.ActionType != 3 {
+			if action.ActionType == 4 {
+				new_action["value"] = action.EscalationPolicy
+			} else if action.ActionType == 6 {
+				new_action["value"] = action.Assigned_To
+			} else if action.ActionType == 14 {
+				new_action["value"] = action.SLA
+			} else if action.ActionType == 15 {
+				new_action["value"] = action.TeamPriority
+			} else {
+				new_action["value"] = action.Value
+			}
+		}
+		if action.ActionType == 11 {
+			new_action["key"] = action.Key
+		}
+		actions_list = append(actions_list, new_action)
+	}
+	return actions_list
 }
 
 func resourceDeleteAlertRules(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -254,4 +291,25 @@ func resourceDeleteAlertRules(Ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	return diags
+}
+
+func resourceAlertRulesImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 4 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<service_id>/<integration_id>/<alert_rule_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid serviceid (%q)", parts[1])
+	} else if !IsValidUUID(parts[2]) {
+		return nil, fmt.Errorf("invalid integration_id (%q)", parts[2])
+	} else if !IsValidUUID(parts[3]) {
+		return nil, fmt.Errorf("invalid alert_rule_id (%q)", parts[3])
+	}
+	d.SetId(parts[3])
+	d.Set("integration_id", parts[2])
+	d.Set("team_id", parts[0])
+	d.Set("service_id", parts[1])
+
+	return []*schema.ResourceData{d}, nil
 }

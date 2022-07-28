@@ -44,3 +44,26 @@ output "teams" {
 ### Optional
 
 - **team_id** (String)
+
+## Attributes Reference
+
+The following attributes are exported as list of maps:
+
+* `name` - The name of the team.
+* `unique_id` - The unique_id of the team.
+* `account` - The account_id of the team.
+* `owner` - The username of the owner of the team.
+* `members` - The list of members of the team.
+  * `team` - The unique_id of the team.
+  * `role` - The role of the member.
+  * `user` - contains Maps with attributes
+    * `username` - The username of the user.
+    * `first_name` - The first name of the user.
+    * `last_name` - The last name of the user.
+    * `email` - The emailid of the user.
+* `roles` - The list of Incident roles in the team as maps.
+  * `team` - The unique_id of the team.
+  * `title` - The title of the role.
+  * `description` - The description of the role.
+  * `rank` - The rank of the role.
+

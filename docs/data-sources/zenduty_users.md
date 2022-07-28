@@ -28,6 +28,14 @@ output "user" {
 ## Argument Reference
 * `email`(Required) - Emailid of the user to query.
 
+## Attributes Reference
+The following attributes are exported as list of maps:
+
+* `email` - The emailid of the user.
+* `first_name` - The first name of the user.
+* `last_name` - The last name of the user.
+* `username` - The username of the user.
+
 
 
 

@@ -34,3 +34,15 @@ output "zenduty_priorities" {
 * `team_id`(Required) - The UniqueID of the team to query.
 
 
+## Attributes Reference
+
+The following attributes are exported as list of maps:
+
+  * `unique_id` - The UniqueID of the priority.
+  * `name` - The name of the priority.
+  * `description` - The description of the priority.
+  * `team` - The unique_id of team that the priority belongs to.
+  * `color` - The color of the priority.
+  
+
+  

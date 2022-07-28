@@ -3,6 +3,8 @@ package zenduty
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -15,6 +17,9 @@ func resourcePriority() *schema.Resource {
 		UpdateContext: resourceUpdatePriority,
 		DeleteContext: resourceDeletePriority,
 		ReadContext:   resourceReadPriority,
+		Importer: &schema.ResourceImporter{
+			State: resourcePriorityImporter,
+		},
 		Schema: map[string]*schema.Schema{
 
 			"name": {
@@ -30,8 +35,9 @@ func resourcePriority() *schema.Resource {
 				Required: true,
 			},
 			"team_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
+				ValidateDiagFunc: ValidateUUID(),
 			},
 		},
 	}
@@ -110,5 +116,20 @@ func resourceReadPriority(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("name", tag.Name)
 	d.Set("color", tag.Color)
 	d.Set("team_id", tag.Team)
+	d.Set("description", tag.Description)
 	return nil
+}
+
+func resourcePriorityImporter(d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<incident_priority_id>", d.Id())
+	} else if !IsValidUUID(parts[0]) {
+		return nil, fmt.Errorf("invalid team_id (%q)", parts[0])
+	} else if !IsValidUUID(parts[1]) {
+		return nil, fmt.Errorf("invalid priority (%q)", parts[1])
+	}
+	d.Set("team_id", parts[0])
+	d.SetId(parts[1])
+	return []*schema.ResourceData{d}, nil
 }
