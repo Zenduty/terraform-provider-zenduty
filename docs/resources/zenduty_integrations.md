@@ -79,7 +79,7 @@ Integrations can be imported using the `team_id`(ie. unique_id of the team) and 
 
 `$ terraform state show zenduty_integrations.integration1`
 
-`* copy the output data and paste inside zenduty_integrations.integration1 resource block and remove the id attribute`
+`* copy the output data and paste inside zenduty_integrations.integration1 resource block and remove the id,integration_key,webhook_url attributes`
 
 `$ terraform plan` to verify the import
 
