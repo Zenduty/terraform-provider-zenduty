@@ -49,11 +49,11 @@ func resourceIntegrations() *schema.Resource {
 			},
 			"integration_key": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"webhook_url": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Computed: true,
 			},
 			"is_enabled": {
 				Type:     schema.TypeBool,
@@ -146,11 +146,13 @@ func resourceIntegrationUpdate(Ctx context.Context, d *schema.ResourceData, m in
 		newIntegration.Default_Urgency = v.(int)
 	}
 
-	_, err := apiclient.Integrations.UpdateIntegration(team_id, service_id, id, newIntegration)
+	integration, err := apiclient.Integrations.UpdateIntegration(team_id, service_id, id, newIntegration)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
+	d.Set("integration_key", integration.Integration_key)
+	d.Set("is_enabled", integration.Is_Enabled)
+	d.Set("webhook_url", integration.Webhook_url)
 	// added integration_key in response output
 
 	return diags
