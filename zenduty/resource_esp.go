@@ -106,11 +106,19 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 		new_esp.Move_To_Next = v.(bool)
 	}
 	new_esp.Rules = make([]client.Rules, len(rules))
+	var old_delay int
 	for i, rule := range rules {
 		rule_map := rule.(map[string]interface{})
 		new_rule := client.Rules{}
 		if v, ok := rule_map["delay"]; ok {
 			new_rule.Delay = v.(int)
+			if i == 0 {
+				old_delay = new_rule.Delay
+			} else if new_rule.Delay < old_delay {
+				return nil, diag.FromErr(fmt.Errorf("delay must be greater than previous %d should be greater than %d", new_rule.Delay, old_delay))
+			} else {
+				old_delay = new_rule.Delay
+			}
 		}
 		// if v, ok := rule_map["position"]; ok {
 		// 	new_rule.Position = v.(int)
