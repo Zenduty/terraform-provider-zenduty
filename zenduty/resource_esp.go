@@ -11,6 +11,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func resourceEsp() *schema.Resource {
@@ -70,8 +71,9 @@ func resourceEsp() *schema.Resource {
 				},
 			},
 			"repeat_policy": {
-				Type:     schema.TypeInt,
-				Optional: true,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntBetween(0, 10),
 			},
 			"move_to_next": {
 				Type:     schema.TypeBool,
@@ -106,19 +108,20 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 		new_esp.Move_To_Next = v.(bool)
 	}
 	new_esp.Rules = make([]client.Rules, len(rules))
-	var old_delay int
+	old_delay := 0
 	for i, rule := range rules {
 		rule_map := rule.(map[string]interface{})
 		new_rule := client.Rules{}
 		if v, ok := rule_map["delay"]; ok {
-			new_rule.Delay = v.(int)
-			if i == 0 {
-				old_delay = new_rule.Delay
-			} else if new_rule.Delay < old_delay {
-				return nil, diag.FromErr(fmt.Errorf("delay must be greater than previous %d should be greater than %d", new_rule.Delay, old_delay))
-			} else {
-				old_delay = new_rule.Delay
+			if i == 0 && new_rule.Delay != 0 {
+				return nil, diag.FromErr(errors.New("delay is not 0 for first rule"))
 			}
+			new_rule.Delay = v.(int)
+			if new_rule.Delay < old_delay && i != 0 {
+				return nil, diag.FromErr(fmt.Errorf("delay must be greater than previous %d should be greater than %d", new_rule.Delay, old_delay))
+			}
+			old_delay = new_rule.Delay
+
 		}
 		// if v, ok := rule_map["position"]; ok {
 		// 	new_rule.Position = v.(int)
