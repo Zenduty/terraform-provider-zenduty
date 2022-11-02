@@ -60,3 +60,57 @@ func ValidateUUID() schema.SchemaValidateDiagFunc {
 		return diags
 	}
 }
+
+func isEmailValid(e string) bool {
+    emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+    return emailRegex.MatchString(e)
+}
+
+func ValidateEmail() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		id, ok := v.(string)
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid",
+				Detail:   "expected type of string",
+			})
+		}
+		if !isEmailValid(id) {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid Email",
+				Detail:   fmt.Sprintf("expected %s to be a valid Email", path),
+			})
+		}
+
+		return diags
+	}
+
+}
+
+func ValidateRequired() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		id, ok := v.(string)
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Invalid",
+				Detail:   "expected type of string",
+			})
+		}
+		if emptyString(id) {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "This field is required",
+				Detail:   fmt.Sprintf("This field cannot be empty"),
+			})
+		}
+
+		return diags
+	}
+
+}
+

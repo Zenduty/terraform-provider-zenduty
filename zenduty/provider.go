@@ -37,6 +37,7 @@ func Provider() *schema.Provider {
 			"zenduty_priorities":         resourcePriority(),
 			"zenduty_maintenance_window": resourceMaintenanceWindow(),
 			"zenduty_notification_rules": resourceNotificationRules(),
+			"zenduty_user": 			  resourceUser(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
