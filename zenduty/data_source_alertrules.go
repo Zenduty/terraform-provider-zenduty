@@ -114,14 +114,14 @@ func dataSourceAlertRules() *schema.Resource {
 func dataSourceAlertRulesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
-	service_id := d.Get("service_id").(string)
-	integration_id := d.Get("integration_id").(string)
-	alert_rule_id := d.Get("alert_rule_id").(string)
+	teamID := d.Get("team_id").(string)
+	serviceID := d.Get("service_id").(string)
+	integrationID := d.Get("integration_id").(string)
+	alertRuleID := d.Get("alert_rule_id").(string)
 
 	var diags diag.Diagnostics
-	if alert_rule_id != "" {
-		rule, err := apiclient.AlertRules.GetAlertRule(team_id, service_id, integration_id, alert_rule_id)
+	if alertRuleID != "" {
+		rule, err := apiclient.AlertRules.GetAlertRule(teamID, serviceID, integrationID, alertRuleID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -130,21 +130,21 @@ func dataSourceAlertRulesRead(ctx context.Context, d *schema.ResourceData, m int
 		item := make(map[string]interface{})
 
 		item["position"] = rule.Position
-		item["rule_json"] = rule.RuleJson
+		item["rule_json"] = rule.RuleJSON
 		item["rule_type"] = rule.RuleType
 		item["stop"] = rule.Stop
-		item["unique_id"] = rule.Unique_Id
+		item["unique_id"] = rule.UniqueID
 		item["description"] = rule.Description
 		actions := make([]map[string]interface{}, len(rule.Actions))
 		for j, action := range rule.Actions {
 			rule := make(map[string]interface{})
 
-			rule["unique_id"] = action.UniqueId
+			rule["unique_id"] = action.UniqueID
 			rule["action_type"] = action.ActionType
 			rule["key"] = action.Key
 			rule["value"] = action.Value
 			rule["escalation_policy"] = action.EscalationPolicy
-			rule["assign_to"] = action.Assigned_To
+			rule["assign_to"] = action.AssignedTo
 			rule["schedule"] = action.Schedule
 			rule["sla"] = action.SLA
 			rule["team_priority"] = action.TeamPriority
@@ -161,7 +161,7 @@ func dataSourceAlertRulesRead(ctx context.Context, d *schema.ResourceData, m int
 		return diags
 	} else {
 
-		rules, err := apiclient.AlertRules.GetAlertRules(team_id, service_id, integration_id)
+		rules, err := apiclient.AlertRules.GetAlertRules(teamID, serviceID, integrationID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -170,21 +170,21 @@ func dataSourceAlertRulesRead(ctx context.Context, d *schema.ResourceData, m int
 			item := make(map[string]interface{})
 
 			item["position"] = rule.Position
-			item["rule_json"] = rule.RuleJson
+			item["rule_json"] = rule.RuleJSON
 			item["rule_type"] = rule.RuleType
 			item["stop"] = rule.Stop
-			item["unique_id"] = rule.Unique_Id
+			item["unique_id"] = rule.UniqueID
 			item["description"] = rule.Description
 			actions := make([]map[string]interface{}, len(rule.Actions))
 			for j, action := range rule.Actions {
 				rule := make(map[string]interface{})
 
-				rule["unique_id"] = action.UniqueId
+				rule["unique_id"] = action.UniqueID
 				rule["action_type"] = action.ActionType
 				rule["key"] = action.Key
 				rule["value"] = action.Value
 				rule["escalation_policy"] = action.EscalationPolicy
-				rule["assign_to"] = action.Assigned_To
+				rule["assign_to"] = action.AssignedTo
 				rule["schedule"] = action.Schedule
 				rule["sla"] = action.SLA
 				rule["team_priority"] = action.TeamPriority

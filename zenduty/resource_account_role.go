@@ -38,7 +38,6 @@ func resourceAccountRole() *schema.Resource {
 					Type: schema.TypeString,
 				},
 			},
-
 		},
 	}
 }
@@ -80,21 +79,21 @@ func validateAccountRoles(Ctx context.Context, d *schema.ResourceData, m interfa
 	name := d.Get("name").(string)
 	description := d.Get("description").(string)
 	permissions := d.Get("permissions").([]interface{})
-	new_role := &client.AccountRole{}
+	newRole := &client.AccountRole{}
 
-	new_role.Name = name
-	new_role.Description = description
-	for _,permission :=range permissions{
+	newRole.Name = name
+	newRole.Description = description
+	for _, permission := range permissions {
 		if permission.(string) == "" {
 			return nil, diag.FromErr(errors.New("permission must not be empty"))
 		}
-		if !checkList(permission.(string), permissionsList){
+		if !checkList(permission.(string), permissionsList) {
 			return nil, diag.FromErr(fmt.Errorf("invalid permission received %s", permission.(string)))
 		}
-		new_role.Permissions = append(new_role.Permissions, permission.(string))
+		newRole.Permissions = append(newRole.Permissions, permission.(string))
 	}
 
-	return new_role, nil
+	return newRole, nil
 }
 
 func resourceCreateAccountRole(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -137,7 +136,7 @@ func resourceDeleteAccountRole(ctx context.Context, d *schema.ResourceData, m in
 
 func resourceReadAccountRole(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	role, err := apiclient.AccountRole.GetAccountRoleById(d.Id())
+	role, err := apiclient.AccountRole.GetAccountRoleByID(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -149,7 +148,7 @@ func resourceReadAccountRole(ctx context.Context, d *schema.ResourceData, m inte
 }
 
 func flattenPermissions(permissions []string) []string {
-    var permission_list []string
-    permission_list = append(permission_list, permissions...)
-    return permission_list
+	var permissionList []string
+	permissionList = append(permissionList, permissions...)
+	return permissionList
 }

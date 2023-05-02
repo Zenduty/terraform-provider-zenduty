@@ -104,18 +104,18 @@ func dataSourceEsp() *schema.Resource {
 func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
-	esp_id := d.Get("esp_id").(string)
+	teamID := d.Get("team_id").(string)
+	espID := d.Get("esp_id").(string)
 
 	var diags diag.Diagnostics
-	if esp_id != "" {
-		esp, err := apiclient.Esp.GetEscalationPolicyById(team_id, esp_id)
+	if espID != "" {
+		esp, err := apiclient.Esp.GetEscalationPolicyByID(teamID, espID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		items := make([]map[string]interface{}, 1)
 		item := make(map[string]interface{})
-		item["unique_id"] = esp.Unique_Id
+		item["unique_id"] = esp.UniqueID
 		item["name"] = esp.Name
 		item["summary"] = esp.Summary
 		item["description"] = esp.Description
@@ -125,14 +125,14 @@ func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface
 			rules[j] = map[string]interface{}{
 				"delay":     rule.Delay,
 				"position":  rule.Position,
-				"unique_id": rule.Unique_Id,
+				"unique_id": rule.UniqueID,
 			}
 			if rule.Targets != nil {
 				targets := make([]map[string]interface{}, len(rule.Targets))
 				for k, target := range rule.Targets {
 					targets[k] = map[string]interface{}{
-						"target_type": target.Target_type,
-						"target_id":   target.Target_id,
+						"target_type": target.TargetType,
+						"target_id":   target.TargetID,
 					}
 				}
 				rules[j]["targets"] = targets
@@ -151,14 +151,14 @@ func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diags
 	} else {
 
-		esps, err := apiclient.Esp.GetEscalationPolicy(team_id)
+		esps, err := apiclient.Esp.GetEscalationPolicy(teamID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		items := make([]map[string]interface{}, len(esps))
 		for i, esp := range esps {
 			item := make(map[string]interface{})
-			item["unique_id"] = esp.Unique_Id
+			item["unique_id"] = esp.UniqueID
 			item["name"] = esp.Name
 			item["summary"] = esp.Summary
 			item["description"] = esp.Description
@@ -168,14 +168,14 @@ func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface
 				rules[j] = map[string]interface{}{
 					"delay":     rule.Delay,
 					"position":  rule.Position,
-					"unique_id": rule.Unique_Id,
+					"unique_id": rule.UniqueID,
 				}
 				if rule.Targets != nil {
 					targets := make([]map[string]interface{}, len(rule.Targets))
 					for k, target := range rule.Targets {
 						targets[k] = map[string]interface{}{
-							"target_type": target.Target_type,
-							"target_id":   target.Target_id,
+							"target_type": target.TargetType,
+							"target_id":   target.TargetID,
 						}
 					}
 					rules[j]["targets"] = targets

@@ -21,13 +21,13 @@ func resourceAssignAccountRole() *schema.Resource {
 		DeleteContext: resourceRemoveAssignedRole,
 		Schema: map[string]*schema.Schema{
 			"account_role": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:             schema.TypeString,
+				Required:         true,
 				ValidateDiagFunc: ValidateUUID(),
 			},
-			"username":{
-				Type:     schema.TypeString,
-				Required: true,
+			"username": {
+				Type:         schema.TypeString,
+				Required:     true,
 				ValidateFunc: validation.StringMatch(regexp.MustCompile(`^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{1}$`), "must be a valid username"),
 			},
 		},
@@ -38,17 +38,17 @@ func resourceAssignRole(ctx context.Context, d *schema.ResourceData, m interface
 	apiclient, _ := m.(*Config).Client()
 
 	role := &client.AddRoleToUser{}
-	
+
 	if v, ok := d.GetOk("account_role"); ok {
 		AccountRole := v.(string)
 		role.AccountRole = &AccountRole
 	}
 	username := d.Get("username").(string)
-	
+
 	userrole, err := apiclient.AccountRole.AssignRoleToUser(username, role)
 	if err != nil {
 		return diag.FromErr(err)
-	} 
+	}
 	d.SetId(userrole.Username)
 	return nil
 }
@@ -59,20 +59,20 @@ func resourceUpdateAssignRole(Ctx context.Context, d *schema.ResourceData, m int
 	role := &client.AddRoleToUser{}
 
 	var diags diag.Diagnostics
-	
+
 	if v, ok := d.GetOk("account_role"); ok {
-		AccountRole :=  v.(string)
+		AccountRole := v.(string)
 		role.AccountRole = &AccountRole
 	}
 	username := d.Get("username").(string)
 	if username != d.Id() {
 		return diag.FromErr(errors.New("cannot update username"))
 	}
-	
+
 	_, err := apiclient.AccountRole.AssignRoleToUser(username, role)
 	if err != nil {
 		return diag.FromErr(err)
-	} 
+	}
 	return diags
 
 }

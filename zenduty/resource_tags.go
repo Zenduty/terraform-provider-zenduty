@@ -43,7 +43,7 @@ func validateTags(Ctx context.Context, d *schema.ResourceData, m interface{}) (*
 	name := d.Get("name").(string)
 	color := d.Get("color").(string)
 	team := d.Get("team_id").(string)
-	new_tag := &client.Tag{}
+	newTag := &client.Tag{}
 	if !IsValidUUID(team) {
 		return nil, diag.FromErr(errors.New("team_id must be a valid UUID"))
 	}
@@ -51,10 +51,10 @@ func validateTags(Ctx context.Context, d *schema.ResourceData, m interface{}) (*
 		return nil, diag.FromErr(errors.New("color must be one of the following: magenta, red, volcano, orange, gold, lime, green, cyan, blue, geekblue, purple"))
 	}
 
-	new_tag.Name = name
-	new_tag.Color = color
+	newTag.Name = name
+	newTag.Color = color
 
-	return new_tag, nil
+	return newTag, nil
 }
 
 func resourceCreateTags(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -68,7 +68,7 @@ func resourceCreateTags(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(tag.Unique_Id)
+	d.SetId(tag.UniqueID)
 	return nil
 }
 
@@ -83,7 +83,7 @@ func resourceUpdateTags(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(tag.Unique_Id)
+	d.SetId(tag.UniqueID)
 	return nil
 }
 
@@ -101,11 +101,11 @@ func resourceDeleteTags(ctx context.Context, d *schema.ResourceData, m interface
 func resourceReadTag(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	team := d.Get("team_id").(string)
-	tag, err := apiclient.Tags.GetTagId(team, d.Id())
+	tag, err := apiclient.Tags.GetTagID(team, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(tag.Unique_Id)
+	d.SetId(tag.UniqueID)
 	d.Set("name", tag.Name)
 	d.Set("color", tag.Color)
 	d.Set("team_id", tag.Team)

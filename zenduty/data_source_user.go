@@ -67,10 +67,10 @@ func dataSourceUserReads(ctx context.Context, d *schema.ResourceData, m interfac
 	items := make([]map[string]interface{}, len(users))
 	for i, user := range users {
 		item := make(map[string]interface{})
-		item["unique_id"] = user.Unique_Id
+		item["unique_id"] = user.UniqueID
 		item["email"] = user.User.Email
-		item["first_name"] = user.User.First_Name
-		item["last_name"] = user.User.Last_Name
+		item["first_name"] = user.User.FirstName
+		item["last_name"] = user.User.LastName
 		item["username"] = user.User.Username
 		items[i] = item
 

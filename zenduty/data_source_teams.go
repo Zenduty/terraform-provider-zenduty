@@ -113,27 +113,27 @@ func dataSourceTeams() *schema.Resource {
 func dataSourceTeamReads(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
-	if team_id != "" {
+	teamID := d.Get("team_id").(string)
+	if teamID != "" {
 		var diags diag.Diagnostics
-		team, err := apiclient.Teams.GetTeamById(team_id)
+		team, err := apiclient.Teams.GetTeamByID(teamID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		items := make([]map[string]interface{}, 1)
 		item := make(map[string]interface{})
-		item["unique_id"] = team.Unique_Id
+		item["unique_id"] = team.UniqueID
 		item["name"] = team.Name
 		item["owner"] = team.Owner
 		item["account"] = team.Account
-		item["creation_date"] = team.Creation_Date
+		item["creation_date"] = team.CreationDate
 		roles := make([]map[string]interface{}, len(team.Roles))
 		for j, role := range team.Roles {
 			roles[j] = map[string]interface{}{
-				"unique_id":     role.Unique_Id,
+				"unique_id":     role.UniqueID,
 				"title":         role.Title,
 				"description":   role.Description,
-				"creation_date": role.Creation_Date,
+				"creation_date": role.CreationDate,
 				"rank":          role.Rank,
 			}
 		}
@@ -143,14 +143,14 @@ func dataSourceTeamReads(ctx context.Context, d *schema.ResourceData, m interfac
 		members := make([]map[string]interface{}, len(team.Members))
 		for j, member := range team.Members {
 			members[j] = map[string]interface{}{
-				"unique_id":    member.Unique_Id,
+				"unique_id":    member.UniqueID,
 				"team":         member.Team,
-				"joining_date": member.Joining_Date,
+				"joining_date": member.JoiningDate,
 				"role":         member.Role,
 				"user": map[string]interface{}{
 					"username":   member.User.Username,
-					"first_name": member.User.First_Name,
-					"last_name":  member.User.Last_Name,
+					"first_name": member.User.FirstName,
+					"last_name":  member.User.LastName,
 					"email":      member.User.Email,
 				},
 			}
@@ -176,16 +176,16 @@ func dataSourceTeamReads(ctx context.Context, d *schema.ResourceData, m interfac
 		items := make([]map[string]interface{}, len(teams))
 		for i, team := range teams {
 			item := make(map[string]interface{})
-			item["unique_id"] = team.Unique_Id
+			item["unique_id"] = team.UniqueID
 			item["name"] = team.Name
 			item["owner"] = team.Owner
 			roles := make([]map[string]interface{}, len(team.Roles))
 			for j, role := range team.Roles {
 				roles[j] = map[string]interface{}{
-					"unique_id":     role.Unique_Id,
+					"unique_id":     role.UniqueID,
 					"title":         role.Title,
 					"description":   role.Description,
-					"creation_date": role.Creation_Date,
+					"creation_date": role.CreationDate,
 					"rank":          role.Rank,
 				}
 			}
@@ -194,14 +194,14 @@ func dataSourceTeamReads(ctx context.Context, d *schema.ResourceData, m interfac
 			members := make([]map[string]interface{}, len(team.Members))
 			for j, member := range team.Members {
 				members[j] = map[string]interface{}{
-					"unique_id":    member.Unique_Id,
+					"unique_id":    member.UniqueID,
 					"team":         member.Team,
-					"joining_date": member.Joining_Date,
+					"joining_date": member.JoiningDate,
 					"role":         member.Role,
 					"user": map[string]interface{}{
 						"username":   member.User.Username,
-						"first_name": member.User.First_Name,
-						"last_name":  member.User.Last_Name,
+						"first_name": member.User.FirstName,
+						"last_name":  member.User.LastName,
 						"email":      member.User.Email,
 					},
 				}

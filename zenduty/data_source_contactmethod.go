@@ -43,7 +43,7 @@ func dataSourceNotificationRulesRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("username is required")
 	}
 
-	contact_type := d.Get("contact_type").(int)
+	contactType := d.Get("contact_type").(int)
 	value := d.Get("value").(string)
 
 	var diags diag.Diagnostics
@@ -53,27 +53,27 @@ func dataSourceNotificationRulesRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Error getting contactmethod: %s", err)
 	}
 	if len(contactmethod) == 0 {
-		return diag.Errorf("No contactmethod found for contact_type %s", strconv.Itoa(contact_type))
+		return diag.Errorf("No contactmethod found for contact_type %s", strconv.Itoa(contactType))
 	}
 	if value != "" {
 		for _, contactmethod := range contactmethod {
-			if contactmethod.Value == value && contactmethod.ContactType == contact_type {
+			if contactmethod.Value == value && contactmethod.ContactType == contactType {
 				d.SetId(contactmethod.UniqueID)
 				d.Set("value", contactmethod.Value)
 				d.Set("name", contactmethod.Name)
 				return diags
 			}
 		}
-		return diag.Errorf("No contactmethod found for contact_type %s and value %s", contact_type, value)
+		return diag.Errorf("No contactmethod found for contact_type %s and value %s", strconv.Itoa(contactType), value)
 	}
 	for _, contactmethod := range contactmethod {
-		if contactmethod.ContactType == contact_type {
+		if contactmethod.ContactType == contactType {
 			d.SetId(contactmethod.UniqueID)
 			d.Set("value", contactmethod.Value)
 			d.Set("name", contactmethod.Name)
 			return diags
 		}
 	}
-	return diag.Errorf("No contactmethod found for contact_type %s", contact_type)
+	return diag.Errorf("No contactmethod found for contact_type %s", strconv.Itoa(contactType))
 
 }

@@ -49,30 +49,30 @@ func resourceIncidents() *schema.Resource {
 func resourceIncidentsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	new_incident := &client.Incident{}
+	newIncident := &client.Incident{}
 	var diags diag.Diagnostics
 	summary := d.Get("summary").(string)
 	if summary != "" {
-		new_incident.Summary = summary
+		newIncident.Summary = summary
 	}
 	if v, ok := d.GetOk("title"); ok {
-		new_incident.Title = v.(string)
+		newIncident.Title = v.(string)
 	}
 	if v, ok := d.GetOk("user"); ok {
-		new_incident.User = v.(string)
+		newIncident.User = v.(string)
 	}
 	if v, ok := d.GetOk("escalation_policy"); ok {
-		new_incident.EscalationPolicy = v.(string)
+		newIncident.EscalationPolicy = v.(string)
 	}
 	if v, ok := d.GetOk("service"); ok {
-		new_incident.Service = v.(string)
+		newIncident.Service = v.(string)
 	}
 
-	incident, err := apiclient.Incidents.CreateIncident(new_incident)
+	incident, err := apiclient.Incidents.CreateIncident(newIncident)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(strconv.Itoa(incident.Incident_Number))
+	d.SetId(strconv.Itoa(incident.IncidentNumber))
 	return diags
 }
 
@@ -82,8 +82,8 @@ func resourceIncidentUpdate(Ctx context.Context, d *schema.ResourceData, m inter
 		apiclient, _ := m.(*Config).Client()
 
 		id := d.Id()
-		new_status := &client.IncidentStatus{}
-		_, err := apiclient.Incidents.UpdateIncident(id, new_status)
+		newStatus := &client.IncidentStatus{}
+		_, err := apiclient.Incidents.UpdateIncident(id, newStatus)
 		if err != nil {
 			return diag.FromErr(err)
 		}
