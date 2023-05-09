@@ -41,6 +41,7 @@ func Provider() *schema.Provider {
 			"zenduty_account_role":        resourceAccountRole(),
 			"zenduty_assign_account_role": resourceAssignAccountRole(),
 			"zenduty_globalrouter":        resourceGlobalRouter(),
+			"zenduty_globalrouting_rule":  resourceGlobalRoutingRules(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
