@@ -51,7 +51,7 @@ resource "zenduty_alertrules" "example_alertrules" {
 * `integration_id` (Required) - The unique_id of the integration to create the alert rule in.
 * `description` (Required) - The description of the alert rule.
 * `rule_json` (Required)(string) - The rule json of the alert rule.You cannot construct the rule json in terraform as of now.One can construct the rule json in Zenduty's UI.Create an dummy alert rule in Zenduty and copy the rule_json from the UI.
-* `actions` (Optional) - The rules of the escalation policy. (see [below for nested schema](#nestedblock--actions))
+* `actions` (Optional) - The actions to be performed when the rule matches. (see [below for nested schema](#nestedblock--actions))
 
 
 <a id="nestedblock--actions"></a>
