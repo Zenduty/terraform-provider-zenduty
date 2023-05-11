@@ -62,8 +62,8 @@ func ValidateUUID() schema.SchemaValidateDiagFunc {
 }
 
 func isEmailValid(e string) bool {
-    emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
-    return emailRegex.MatchString(e)
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(e)
 }
 
 func ValidateEmail() schema.SchemaValidateDiagFunc {
@@ -105,7 +105,7 @@ func ValidateRequired() schema.SchemaValidateDiagFunc {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "This field is required",
-				Detail:   fmt.Sprintf("This field cannot be empty"),
+				Detail:   "This field cannot be empty",
 			})
 		}
 
@@ -113,4 +113,3 @@ func ValidateRequired() schema.SchemaValidateDiagFunc {
 	}
 
 }
-

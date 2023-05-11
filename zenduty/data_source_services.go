@@ -104,14 +104,14 @@ func dataSourceServices() *schema.Resource {
 func dataSourceServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 	id := d.Get("service_id").(string)
-	if team_id == "" {
+	if teamID == "" {
 		return diag.Errorf("team_id is required")
 	}
 	var diags diag.Diagnostics
 	if id != "" {
-		service, err := apiclient.Services.GetServicesById(team_id, id)
+		service, err := apiclient.Services.GetServicesByID(teamID, id)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -119,22 +119,22 @@ func dataSourceServicesRead(ctx context.Context, d *schema.ResourceData, m inter
 
 		items[0] = map[string]interface{}{
 			"name":                    service.Name,
-			"escalation_policy":       service.Escalation_Policy,
+			"escalation_policy":       service.EscalationPolicy,
 			"team":                    service.Team,
 			"description":             service.Description,
 			"summary":                 service.Summary,
 			"collation":               service.Collation,
-			"collation_time":          service.Collation_Time,
-			"sla":                     service.Sla,
-			"task_template":           service.Task_Template,
-			"team_priority":           service.Team_Priority,
-			"creation_date":           service.Creation_Date,
-			"unique_id":               service.Unique_Id,
-			"auto_resolve_timeout":    service.Auto_Resolve_Timeout,
-			"created_by":              service.Created_By,
-			"acknowledgement_timeout": service.Acknowledgment_Timeout,
+			"collation_time":          service.CollationTime,
+			"sla":                     service.SLA,
+			"task_template":           service.TaskTemplate,
+			"team_priority":           service.TeamPriority,
+			"creation_date":           service.CreationDate,
+			"unique_id":               service.UniqueID,
+			"auto_resolve_timeout":    service.AutoResolveTimeout,
+			"created_by":              service.CreatedBy,
+			"acknowledgement_timeout": service.AcknowledgmentTimeout,
 			"status":                  service.Status,
-			"under_maintenance":       service.Under_Maintenance,
+			"under_maintenance":       service.UnderMaintenance,
 		}
 		if err := d.Set("services", items); err != nil {
 			return diag.FromErr(err)
@@ -144,7 +144,7 @@ func dataSourceServicesRead(ctx context.Context, d *schema.ResourceData, m inter
 	} else {
 
 		// id := d.Get("id").(string)
-		services, err := apiclient.Services.GetServices(team_id)
+		services, err := apiclient.Services.GetServices(teamID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -152,22 +152,22 @@ func dataSourceServicesRead(ctx context.Context, d *schema.ResourceData, m inter
 		for i, service := range services {
 			items[i] = map[string]interface{}{
 				"name":                    service.Name,
-				"escalation_policy":       service.Escalation_Policy,
+				"escalation_policy":       service.EscalationPolicy,
 				"team":                    service.Team,
 				"description":             service.Description,
 				"summary":                 service.Summary,
 				"collation":               service.Collation,
-				"collation_time":          service.Collation_Time,
-				"sla":                     service.Sla,
-				"task_template":           service.Task_Template,
-				"team_priority":           service.Team_Priority,
-				"creation_date":           service.Creation_Date,
-				"unique_id":               service.Unique_Id,
-				"auto_resolve_timeout":    service.Auto_Resolve_Timeout,
-				"created_by":              service.Created_By,
-				"acknowledgement_timeout": service.Acknowledgment_Timeout,
+				"collation_time":          service.CollationTime,
+				"sla":                     service.SLA,
+				"task_template":           service.TaskTemplate,
+				"team_priority":           service.TeamPriority,
+				"creation_date":           service.CreationDate,
+				"unique_id":               service.UniqueID,
+				"auto_resolve_timeout":    service.AutoResolveTimeout,
+				"created_by":              service.CreatedBy,
+				"acknowledgement_timeout": service.AcknowledgmentTimeout,
 				"status":                  service.Status,
-				"under_maintenance":       service.Under_Maintenance,
+				"under_maintenance":       service.UnderMaintenance,
 			}
 		}
 		if err := d.Set("services", items); err != nil {

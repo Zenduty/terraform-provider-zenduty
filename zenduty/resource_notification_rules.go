@@ -45,22 +45,22 @@ func resourceNotificationRules() *schema.Resource {
 
 func resourceCreateNotificationRule(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	new_notificationRule := &client.CreateNotificationRules{}
+	newNotificationRule := &client.CreateNotificationRules{}
 	var diags diag.Diagnostics
 	var username string
 	if v, ok := d.GetOk("username"); ok {
 		username = v.(string)
 	}
 	if v, ok := d.GetOk("urgency"); ok {
-		new_notificationRule.Urgency = v.(int)
+		newNotificationRule.Urgency = v.(int)
 	}
 	if v, ok := d.GetOk("contact"); ok {
-		new_notificationRule.Contact = v.(string)
+		newNotificationRule.Contact = v.(string)
 	}
 	if v, ok := d.GetOk("delay"); ok {
-		new_notificationRule.StartDelay = v.(int)
+		newNotificationRule.StartDelay = v.(int)
 	}
-	notificationRule, err := apiclient.NotificationRules.CreateNotificationRules(username, new_notificationRule)
+	notificationRule, err := apiclient.NotificationRules.CreateNotificationRules(username, newNotificationRule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -70,22 +70,22 @@ func resourceCreateNotificationRule(Ctx context.Context, d *schema.ResourceData,
 
 func resourceUpdateNotificationRule(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	new_notificationRule := &client.NotificationRules{}
+	newNotificationRule := &client.NotificationRules{}
 	var diags diag.Diagnostics
 	var username string
 	if v, ok := d.GetOk("username"); ok {
 		username = v.(string)
 	}
 	if v, ok := d.GetOk("urgency"); ok {
-		new_notificationRule.Urgency = v.(int)
+		newNotificationRule.Urgency = v.(int)
 	}
 	if v, ok := d.GetOk("contact"); ok {
-		new_notificationRule.Contact = v.(string)
+		newNotificationRule.Contact = v.(string)
 	}
 	if v, ok := d.GetOk("delay"); ok {
-		new_notificationRule.StartDelay = v.(int)
+		newNotificationRule.StartDelay = v.(int)
 	}
-	notificationRule, err := apiclient.NotificationRules.UpdateNotificationRules(username, d.Id(), new_notificationRule)
+	notificationRule, err := apiclient.NotificationRules.UpdateNotificationRules(username, d.Id(), newNotificationRule)
 	if err != nil {
 		return diag.FromErr(err)
 	}

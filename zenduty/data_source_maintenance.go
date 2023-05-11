@@ -80,11 +80,11 @@ func dataSourceMaintenanceWindow() *schema.Resource {
 
 func dataSourceManintenanceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 
 	var diags diag.Diagnostics
 
-	maintenances, err := apiclient.MaintenanceWindow.GetMaintenanceWindows(team_id)
+	maintenances, err := apiclient.MaintenanceWindow.GetMaintenanceWindows(teamID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -94,7 +94,7 @@ func dataSourceManintenanceRead(ctx context.Context, d *schema.ResourceData, m i
 		item := make(map[string]interface{})
 		item["unique_id"] = maintenance.UniqueID
 		item["name"] = maintenance.Name
-		item["creation_date"] = maintenance.Creation_Date
+		item["creation_date"] = maintenance.CreationDate
 		item["start_time"] = maintenance.StartTime
 		item["end_time"] = maintenance.EndTime
 		item["repeat_interval"] = maintenance.RepeatInterval

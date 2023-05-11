@@ -58,9 +58,9 @@ func dataSourcePriorityRead(ctx context.Context, d *schema.ResourceData, m inter
 
 	var diags diag.Diagnostics
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 
-	priorities, err := apiclient.Priority.GetPriority(team_id)
+	priorities, err := apiclient.Priority.GetPriority(teamID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -69,9 +69,9 @@ func dataSourcePriorityRead(ctx context.Context, d *schema.ResourceData, m inter
 	for i, priority := range priorities {
 		item := make(map[string]interface{})
 		item["team"] = priority.Team
-		item["unique_id"] = priority.Unique_Id
+		item["unique_id"] = priority.UniqueID
 		item["name"] = priority.Name
-		item["creation_date"] = priority.Creation_Date
+		item["creation_date"] = priority.CreationDate
 		item["description"] = priority.Description
 		items[i] = item
 	}
@@ -79,7 +79,7 @@ func dataSourcePriorityRead(ctx context.Context, d *schema.ResourceData, m inter
 	if err := d.Set("priorities", items); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(team_id)
+	d.SetId(teamID)
 
 	return diags
 

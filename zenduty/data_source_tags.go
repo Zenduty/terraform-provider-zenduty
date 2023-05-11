@@ -54,9 +54,9 @@ func dataSourceTagsRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	var diags diag.Diagnostics
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 
-	tags, err := apiclient.Tags.GetTags(team_id)
+	tags, err := apiclient.Tags.GetTags(teamID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -65,16 +65,16 @@ func dataSourceTagsRead(ctx context.Context, d *schema.ResourceData, m interface
 	for i, tag := range tags {
 		item := make(map[string]interface{})
 		item["team"] = tag.Team
-		item["unique_id"] = tag.Unique_Id
+		item["unique_id"] = tag.UniqueID
 		item["name"] = tag.Name
-		item["creation_date"] = tag.Creation_Date
+		item["creation_date"] = tag.CreationDate
 		items[i] = item
 	}
 
 	if err := d.Set("tags", items); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(team_id)
+	d.SetId(teamID)
 
 	return diags
 

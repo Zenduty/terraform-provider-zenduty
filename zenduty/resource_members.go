@@ -38,52 +38,52 @@ func resourceMembers() *schema.Resource {
 func resourceMemberCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	new_members := &client.Member{}
+	newMembers := &client.Member{}
 	role := d.Get("role").(int)
 	if role == 0 {
-		new_members.Role = 2
+		newMembers.Role = 2
 	} else {
-		new_members.Role = role
+		newMembers.Role = role
 	}
 	var diags diag.Diagnostics
 	if v, ok := d.GetOk("team"); ok {
-		new_members.Team = v.(string)
+		newMembers.Team = v.(string)
 
 	}
 	if v, ok := d.GetOk("user"); ok {
-		new_members.User = v.(string)
+		newMembers.User = v.(string)
 	}
 
-	member, err := apiclient.Members.CreateTeamMember(new_members.Team, new_members)
+	member, err := apiclient.Members.CreateTeamMember(newMembers.Team, newMembers)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(member.Unique_Id)
+	d.SetId(member.UniqueID)
 	return diags
 }
 
 func resourceMemberUpdate(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	new_members := &client.Member{}
+	newMembers := &client.Member{}
 	id := d.Id()
-	new_members.Unique_Id = id
+	newMembers.UniqueID = id
 	var diags diag.Diagnostics
 	if v, ok := d.GetOk("user"); ok {
-		new_members.User = v.(string)
+		newMembers.User = v.(string)
 	}
 	if v, ok := d.GetOk("role"); ok {
 
 		if v.(int) == 0 {
-			new_members.Role = 2
+			newMembers.Role = 2
 		} else {
-			new_members.Role = v.(int)
+			newMembers.Role = v.(int)
 		}
 	}
 	if v, ok := d.GetOk("team"); ok {
-		new_members.Team = v.(string)
+		newMembers.Team = v.(string)
 	}
-	_, err := apiclient.Members.UpdateTeamMember(new_members)
+	_, err := apiclient.Members.UpdateTeamMember(newMembers)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,7 +114,7 @@ func resourceMemberRead(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(member.Unique_Id)
+	d.SetId(member.UniqueID)
 	d.Set("team", member.Team)
 	d.Set("user", member.User)
 	d.Set("role", member.Role)

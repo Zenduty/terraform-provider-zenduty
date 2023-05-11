@@ -57,9 +57,9 @@ func dataSourceOrderRead(ctx context.Context, d *schema.ResourceData, m interfac
 
 	var diags diag.Diagnostics
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 
-	roles, err := apiclient.Roles.GetRoles(team_id)
+	roles, err := apiclient.Roles.GetRoles(teamID)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -68,9 +68,9 @@ func dataSourceOrderRead(ctx context.Context, d *schema.ResourceData, m interfac
 	for i, role := range roles {
 		item := make(map[string]interface{})
 		item["team"] = role.Team
-		item["unique_id"] = role.Unique_Id
+		item["unique_id"] = role.UniqueID
 		item["title"] = role.Title
-		item["creation_date"] = role.Creation_Date
+		item["creation_date"] = role.CreationDate
 		item["description"] = role.Description
 		item["rank"] = role.Rank
 		items[i] = item
@@ -79,7 +79,7 @@ func dataSourceOrderRead(ctx context.Context, d *schema.ResourceData, m interfac
 	if err := d.Set("roles", items); err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(team_id)
+	d.SetId(teamID)
 
 	return diags
 

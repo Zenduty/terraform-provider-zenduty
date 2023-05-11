@@ -173,22 +173,22 @@ func dataSourceSchedules() *schema.Resource {
 func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
-	schedule_id := d.Get("schedule_id").(string)
+	teamID := d.Get("team_id").(string)
+	scheduleID := d.Get("schedule_id").(string)
 
 	var diags diag.Diagnostics
-	if schedule_id != "" {
-		schedule, err := apiclient.Schedules.GetScheduleByID(team_id, schedule_id)
+	if scheduleID != "" {
+		schedule, err := apiclient.Schedules.GetScheduleByID(teamID, scheduleID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		items := make([]map[string]interface{}, 1)
 		item := make(map[string]interface{})
-		item["unique_id"] = schedule.Unique_Id
+		item["unique_id"] = schedule.UniqueID
 		item["name"] = schedule.Name
 		item["summary"] = schedule.Summary
 		item["description"] = schedule.Description
-		item["time_zone"] = schedule.Time_zone
+		item["time_zone"] = schedule.TimeZone
 		item["team"] = schedule.Team
 		layers := make([]map[string]interface{}, len(schedule.Layers))
 		for j, layer := range schedule.Layers {
@@ -197,7 +197,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 				"name":                layer.Name,
 				"rotation_start_time": layer.RotationStartTime,
 				"rotation_end_time":   layer.RotationEndTime,
-				"unique_id":           layer.UniqueId,
+				"unique_id":           layer.UniqueID,
 				"last_edited":         layer.LastEdited,
 				"restriction_type":    layer.RestrictionType,
 				"is_active":           layer.IsActive,
@@ -209,7 +209,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 						"duration":          restriction.Duration,
 						"start_day_of_week": restriction.StartDayOfWeek,
 						"start_time_of_day": restriction.StartTimeOfDay,
-						"unique_id":         restriction.Unique_Id,
+						"unique_id":         restriction.UniqueID,
 					}
 				}
 				layers[j]["restrictions"] = restrictions
@@ -234,7 +234,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 					"user":       override.User,
 					"start_time": override.StartTime,
 					"end_time":   override.EndTime,
-					"unique_id":  override.Unique_Id,
+					"unique_id":  override.UniqueID,
 				}
 			}
 			item["overrides"] = overrides
@@ -249,18 +249,18 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 		return diags
 	} else {
 
-		schedules, err := apiclient.Schedules.GetSchedules(team_id)
+		schedules, err := apiclient.Schedules.GetSchedules(teamID)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 		items := make([]map[string]interface{}, len(schedules))
 		for i, schedule := range schedules {
 			item := make(map[string]interface{})
-			item["unique_id"] = schedule.Unique_Id
+			item["unique_id"] = schedule.UniqueID
 			item["name"] = schedule.Name
 			item["summary"] = schedule.Summary
 			item["description"] = schedule.Description
-			item["time_zone"] = schedule.Time_zone
+			item["time_zone"] = schedule.TimeZone
 			item["team"] = schedule.Team
 			layers := make([]map[string]interface{}, len(schedule.Layers))
 			for j, layer := range schedule.Layers {
@@ -269,7 +269,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 					"name":                layer.Name,
 					"rotation_start_time": layer.RotationStartTime,
 					"rotation_end_time":   layer.RotationEndTime,
-					"unique_id":           layer.UniqueId,
+					"unique_id":           layer.UniqueID,
 					"last_edited":         layer.LastEdited,
 					"restriction_type":    layer.RestrictionType,
 					"is_active":           layer.IsActive,
@@ -281,7 +281,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 							"duration":          restriction.Duration,
 							"start_day_of_week": restriction.StartDayOfWeek,
 							"start_time_of_day": restriction.StartTimeOfDay,
-							"unique_id":         restriction.Unique_Id,
+							"unique_id":         restriction.UniqueID,
 						}
 					}
 					layers[j]["restrictions"] = restrictions
@@ -306,7 +306,7 @@ func dataSourceScheduleReads(ctx context.Context, d *schema.ResourceData, m inte
 						"user":       override.User,
 						"start_time": override.StartTime,
 						"end_time":   override.EndTime,
-						"unique_id":  override.Unique_Id,
+						"unique_id":  override.UniqueID,
 					}
 				}
 				item["overrides"] = overrides

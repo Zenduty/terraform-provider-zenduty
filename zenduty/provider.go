@@ -23,21 +23,25 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"zenduty_teams":              resourceTeam(),
-			"zenduty_roles":              resourceRoles(),
-			"zenduty_services":           resourceServices(),
-			"zenduty_integrations":       resourceIntegrations(),
-			"zenduty_schedules":          resourceSchedules(),
-			"zenduty_esp":                resourceEsp(),
-			"zenduty_incidents":          resourceIncidents(),
-			"zenduty_invite":             resourceInvite(),
-			"zenduty_member":             resourceMembers(),
-			"zenduty_alertrules":         resourceAlertRules(),
-			"zenduty_tags":               resourceTags(),
-			"zenduty_priorities":         resourcePriority(),
-			"zenduty_maintenance_window": resourceMaintenanceWindow(),
-			"zenduty_notification_rules": resourceNotificationRules(),
-			"zenduty_user": 			  resourceUser(),
+			"zenduty_teams":               resourceTeam(),
+			"zenduty_roles":               resourceRoles(),
+			"zenduty_services":            resourceServices(),
+			"zenduty_integrations":        resourceIntegrations(),
+			"zenduty_schedules":           resourceSchedules(),
+			"zenduty_esp":                 resourceEsp(),
+			"zenduty_incidents":           resourceIncidents(),
+			"zenduty_invite":              resourceInvite(),
+			"zenduty_member":              resourceMembers(),
+			"zenduty_alertrules":          resourceAlertRules(),
+			"zenduty_tags":                resourceTags(),
+			"zenduty_priorities":          resourcePriority(),
+			"zenduty_maintenance_window":  resourceMaintenanceWindow(),
+			"zenduty_notification_rules":  resourceNotificationRules(),
+			"zenduty_user":                resourceUser(),
+			"zenduty_account_role":        resourceAccountRole(),
+			"zenduty_assign_account_role": resourceAssignAccountRole(),
+			"zenduty_globalrouter":        resourceGlobalRouter(),
+			"zenduty_globalrouting_rule":  resourceGlobalRoutingRules(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
@@ -61,12 +65,12 @@ func Provider() *schema.Provider {
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	token := d.Get("token").(string)
-	baseUrl := d.Get("base_url").(string)
+	baseURL := d.Get("base_url").(string)
 	var diags diag.Diagnostics
 	if token != "" {
 		client := Config{
 			Token:   token,
-			BaseURL: baseUrl,
+			BaseURL: baseURL,
 		}
 		return &client, diags
 	}

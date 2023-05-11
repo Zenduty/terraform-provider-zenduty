@@ -73,34 +73,34 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 	actions := d.Get("actions").([]interface{})
 	newAlertRule.Actions = make([]client.AlertAction, len(actions))
 	for i, action := range actions {
-		rule_map := action.(map[string]interface{})
-		new_action := client.AlertAction{}
+		ruleMap := action.(map[string]interface{})
+		newAction := client.AlertAction{}
 		var value, key string
 
-		if v, ok := rule_map["action_type"]; ok {
-			new_action.ActionType = v.(int)
+		if v, ok := ruleMap["action_type"]; ok {
+			newAction.ActionType = v.(int)
 		}
 
-		if (new_action.ActionType > 15) || (new_action.ActionType < 1) {
+		if (newAction.ActionType > 15) || (newAction.ActionType < 1) {
 			return nil, diag.FromErr(errors.New("action_type is not valid"))
 		}
 
-		if v, ok := rule_map["value"]; ok {
+		if v, ok := ruleMap["value"]; ok {
 			value = v.(string)
 		}
 
-		if (new_action.ActionType == 1) || (new_action.ActionType == 2) || (new_action.ActionType == 3) || (new_action.ActionType == 4) || (new_action.ActionType == 5) || (new_action.ActionType == 6) || (new_action.ActionType == 7) || (new_action.ActionType == 8) || (new_action.ActionType == 9) || (new_action.ActionType == 10) || (new_action.ActionType == 11) || (new_action.ActionType == 12) || (new_action.ActionType == 13) || (new_action.ActionType == 14) || (new_action.ActionType == 15) {
-			if (new_action.ActionType != 3) && (value == "") {
+		if (newAction.ActionType == 1) || (newAction.ActionType == 2) || (newAction.ActionType == 3) || (newAction.ActionType == 4) || (newAction.ActionType == 5) || (newAction.ActionType == 6) || (newAction.ActionType == 7) || (newAction.ActionType == 8) || (newAction.ActionType == 9) || (newAction.ActionType == 10) || (newAction.ActionType == 11) || (newAction.ActionType == 12) || (newAction.ActionType == 13) || (newAction.ActionType == 14) || (newAction.ActionType == 15) {
+			if (newAction.ActionType != 3) && (value == "") {
 				return nil, diag.FromErr(errors.New("value is required"))
 			}
-			if ((new_action.ActionType == 4) || (new_action.ActionType == 12) || (new_action.ActionType == 13) || (new_action.ActionType == 14) || (new_action.ActionType == 15)) && (!IsValidUUID(value)) {
+			if ((newAction.ActionType == 4) || (newAction.ActionType == 12) || (newAction.ActionType == 13) || (newAction.ActionType == 14) || (newAction.ActionType == 15)) && (!IsValidUUID(value)) {
 				return nil, diag.FromErr(errors.New(value + " is not a valid UUID"))
 			}
 
-			if (new_action.ActionType == 7) && (!(value == "0" || value == "1")) {
+			if (newAction.ActionType == 7) && (!(value == "0" || value == "1")) {
 				return nil, diag.FromErr(errors.New("incident urgency should be 0 or 1"))
 			}
-			if new_action.ActionType == 1 {
+			if newAction.ActionType == 1 {
 				i, err := strconv.Atoi(value)
 				if i < 0 || i > 5 {
 					return nil, diag.FromErr(errors.New("value should be between 0 and 5"))
@@ -108,18 +108,18 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 				if err != nil {
 					return nil, diag.FromErr(errors.New("value is not valid"))
 				}
-				new_action.Value = value
-			} else if new_action.ActionType == 3 {
+				newAction.Value = value
+			} else if newAction.ActionType == 3 {
 				value = ""
-			} else if new_action.ActionType == 4 {
-				new_action.EscalationPolicy = value
+			} else if newAction.ActionType == 4 {
+				newAction.EscalationPolicy = value
 				value = ""
-			} else if new_action.ActionType == 6 {
+			} else if newAction.ActionType == 6 {
 
-				new_action.Assigned_To = value
+				newAction.AssignedTo = value
 				value = ""
-			} else if new_action.ActionType == 11 {
-				if v, ok := rule_map["key"]; ok {
+			} else if newAction.ActionType == 11 {
+				if v, ok := ruleMap["key"]; ok {
 					key = v.(string)
 				}
 				if key == "" {
@@ -129,31 +129,31 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 					return nil, diag.FromErr(errors.New("key(ie..role_id) is not valid UUID"))
 				}
 
-				new_action.Key = key
+				newAction.Key = key
 
-			} else if new_action.ActionType == 14 {
-				new_action.SLA = value
+			} else if newAction.ActionType == 14 {
+				newAction.SLA = value
 				value = ""
-				if new_action.SLA == "" {
+				if newAction.SLA == "" {
 					return nil, diag.FromErr(errors.New("sla is required"))
-				} else if !IsValidUUID(new_action.SLA) {
+				} else if !IsValidUUID(newAction.SLA) {
 					return nil, diag.FromErr(errors.New("sla is not valid UUID"))
 				}
 
-			} else if new_action.ActionType == 15 {
-				new_action.TeamPriority = value
+			} else if newAction.ActionType == 15 {
+				newAction.TeamPriority = value
 				value = ""
-				if new_action.TeamPriority == "" {
+				if newAction.TeamPriority == "" {
 					return nil, diag.FromErr(errors.New("team_priority is required"))
-				} else if !IsValidUUID(new_action.TeamPriority) {
+				} else if !IsValidUUID(newAction.TeamPriority) {
 					return nil, diag.FromErr(errors.New("team_priority is not valid UUID"))
 				}
 			}
 
-			new_action.Value = value
+			newAction.Value = value
 		}
 
-		newAlertRule.Actions[i] = new_action
+		newAlertRule.Actions[i] = newAction
 
 	}
 	return newAlertRule.Actions, nil
@@ -168,21 +168,21 @@ func ValidateAncCreateAlertRules(Ctx context.Context, d *schema.ResourceData, m 
 
 	}
 	if v, ok := d.GetOk("rule_json"); ok {
-		newAlertRule.RuleJson = v.(string)
+		newAlertRule.RuleJSON = v.(string)
 
 	}
 	if newAlertRule.Description == "" {
 		return nil, diag.FromErr(errors.New("description is required"))
 	}
-	if newAlertRule.RuleJson == "" {
+	if newAlertRule.RuleJSON == "" {
 		return nil, diag.FromErr(errors.New("rule_json is required"))
 	}
-	if !isJSONString(newAlertRule.RuleJson) {
+	if !isJSONString(newAlertRule.RuleJSON) {
 		return nil, diag.FromErr(errors.New("rule_json is not valid JSON"))
 	}
-	actions, action_err := AlertRuleAction(Ctx, d, m, newAlertRule)
-	if action_err != nil {
-		return nil, action_err
+	actions, actionErr := AlertRuleAction(Ctx, d, m, newAlertRule)
+	if actionErr != nil {
+		return nil, actionErr
 	}
 
 	newAlertRule.Actions = actions
@@ -193,41 +193,41 @@ func ValidateAncCreateAlertRules(Ctx context.Context, d *schema.ResourceData, m 
 func resourceCreateAlertRules(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	var diags diag.Diagnostics
-	var team_id, service_id, integration_id string
+	var teamID, serviceID, integrationID string
 
-	team_id = d.Get("team_id").(string)
-	service_id = d.Get("service_id").(string)
-	integration_id = d.Get("integration_id").(string)
+	teamID = d.Get("team_id").(string)
+	serviceID = d.Get("service_id").(string)
+	integrationID = d.Get("integration_id").(string)
 
-	new_rule, rule_err := ValidateAncCreateAlertRules(Ctx, d, m)
-	if rule_err != nil {
-		return rule_err
+	newRule, ruleErr := ValidateAncCreateAlertRules(Ctx, d, m)
+	if ruleErr != nil {
+		return ruleErr
 	}
 
-	alert_rule, err := apiclient.AlertRules.CreateAlertRule(team_id, service_id, integration_id, new_rule)
+	alertRule, err := apiclient.AlertRules.CreateAlertRule(teamID, serviceID, integrationID, newRule)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(alert_rule.Unique_Id)
+	d.SetId(alertRule.UniqueID)
 	return diags
 }
 
 func resourceUpdateAlertRules(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	var diags diag.Diagnostics
-	var team_id, service_id, integration_id string
+	var teamID, serviceID, integrationID string
 
-	team_id = d.Get("team_id").(string)
-	service_id = d.Get("service_id").(string)
-	integration_id = d.Get("integration_id").(string)
+	teamID = d.Get("team_id").(string)
+	serviceID = d.Get("service_id").(string)
+	integrationID = d.Get("integration_id").(string)
 
-	new_rule, rule_err := ValidateAncCreateAlertRules(Ctx, d, m)
-	if rule_err != nil {
-		return rule_err
+	newRule, ruleErr := ValidateAncCreateAlertRules(Ctx, d, m)
+	if ruleErr != nil {
+		return ruleErr
 	}
 
-	_, err := apiclient.AlertRules.UpdateAlertRule(team_id, service_id, integration_id, d.Id(), new_rule)
+	_, err := apiclient.AlertRules.UpdateAlertRule(teamID, serviceID, integrationID, d.Id(), newRule)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -238,55 +238,55 @@ func resourceUpdateAlertRules(Ctx context.Context, d *schema.ResourceData, m int
 func resourceReadAlertRules(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	var diags diag.Diagnostics
-	var team_id, service_id, integration_id string
+	var teamID, serviceID, integrationID string
 
-	team_id = d.Get("team_id").(string)
-	service_id = d.Get("service_id").(string)
-	integration_id = d.Get("integration_id").(string)
+	teamID = d.Get("team_id").(string)
+	serviceID = d.Get("service_id").(string)
+	integrationID = d.Get("integration_id").(string)
 
-	rule, err := apiclient.AlertRules.GetAlertRule(team_id, service_id, integration_id, d.Id())
+	rule, err := apiclient.AlertRules.GetAlertRule(teamID, serviceID, integrationID, d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(rule.Unique_Id)
-	d.Set("rule_json", rule.RuleJson)
+	d.SetId(rule.UniqueID)
+	d.Set("rule_json", rule.RuleJSON)
 	d.Set("actions", flattenAlertActions(rule))
 	d.Set("description", rule.Description)
 
 	return diags
 }
 func flattenAlertActions(rule *client.AlertRule) []map[string]interface{} {
-	var actions_list []map[string]interface{}
+	var actionsList []map[string]interface{}
 	for _, action := range rule.Actions {
-		new_action := map[string]interface{}{}
-		new_action["action_type"] = action.ActionType
+		newAction := map[string]interface{}{}
+		newAction["action_type"] = action.ActionType
 		if action.ActionType != 3 {
 			if action.ActionType == 4 {
-				new_action["value"] = action.EscalationPolicy
+				newAction["value"] = action.EscalationPolicy
 			} else if action.ActionType == 6 {
-				new_action["value"] = action.Assigned_To
+				newAction["value"] = action.AssignedTo
 			} else if action.ActionType == 14 {
-				new_action["value"] = action.SLA
+				newAction["value"] = action.SLA
 			} else if action.ActionType == 15 {
-				new_action["value"] = action.TeamPriority
+				newAction["value"] = action.TeamPriority
 			} else {
-				new_action["value"] = action.Value
+				newAction["value"] = action.Value
 			}
 		}
 		if action.ActionType == 11 {
-			new_action["key"] = action.Key
+			newAction["key"] = action.Key
 		}
-		actions_list = append(actions_list, new_action)
+		actionsList = append(actionsList, newAction)
 	}
-	return actions_list
+	return actionsList
 }
 
 func resourceDeleteAlertRules(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	apiclient, _ := m.(*Config).Client()
-	team_id, service_id, integration_id, unique_id := d.Get("team_id").(string), d.Get("service_id").(string), d.Get("integration_id").(string), d.Id()
+	teamID, serviceID, integrationID, uniqueID := d.Get("team_id").(string), d.Get("service_id").(string), d.Get("integration_id").(string), d.Id()
 
-	err := apiclient.AlertRules.DeleteAlertRule(team_id, service_id, integration_id, unique_id)
+	err := apiclient.AlertRules.DeleteAlertRule(teamID, serviceID, integrationID, uniqueID)
 	if err != nil {
 		return diag.FromErr(err)
 	}

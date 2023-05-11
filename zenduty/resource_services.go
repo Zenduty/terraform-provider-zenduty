@@ -75,65 +75,65 @@ func resourceServices() *schema.Resource {
 }
 
 func CreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) (*client.Services, error) {
-	new_service := &client.Services{}
+	newService := &client.Services{}
 
 	if v, ok := d.GetOk("name"); ok {
-		new_service.Name = v.(string)
+		newService.Name = v.(string)
 	}
 	if v, ok := d.GetOk("escalation_policy"); ok {
-		new_service.Escalation_Policy = v.(string)
+		newService.EscalationPolicy = v.(string)
 	}
 	if v, ok := d.GetOk("description"); ok {
-		new_service.Description = v.(string)
+		newService.Description = v.(string)
 	}
 	if v, ok := d.GetOk("summary"); ok {
-		new_service.Summary = v.(string)
+		newService.Summary = v.(string)
 	}
 	if v, ok := d.GetOk("collation"); ok {
-		new_service.Collation = v.(int)
+		newService.Collation = v.(int)
 	}
 	if v, ok := d.GetOk("collation_time"); ok {
 
-		new_service.Collation_Time = v.(int)
+		newService.CollationTime = v.(int)
 
 	}
 	if v, ok := d.GetOk("sla"); ok {
-		new_service.Sla = v.(string)
+		newService.SLA = v.(string)
 	}
 	if v, ok := d.GetOk("task_template"); ok {
-		new_service.Task_Template = v.(string)
+		newService.TaskTemplate = v.(string)
 	}
 	if v, ok := d.GetOk("team_priority"); ok {
-		new_service.Team_Priority = v.(string)
+		newService.TeamPriority = v.(string)
 	}
-	if new_service.Collation == 1 && new_service.Collation_Time == 0 {
+	if newService.Collation == 1 && newService.CollationTime == 0 {
 		return nil, fmt.Errorf("collation_time is required when collation is enabled")
 
 	}
-	return new_service, nil
+	return newService, nil
 }
 
 func resourceCreateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
-	if team_id == "" {
+	teamID := d.Get("team_id").(string)
+	if teamID == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
 
-	new_service, serviceErr := CreateServices(Ctx, d, m)
+	newService, serviceErr := CreateServices(Ctx, d, m)
 	if serviceErr != nil {
 		return diag.FromErr(serviceErr)
 	}
 
 	var diags diag.Diagnostics
-	service, err := apiclient.Services.CreateService(team_id, new_service)
+	service, err := apiclient.Services.CreateService(teamID, newService)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(service.Unique_Id)
-	d.Set("team_id", team_id)
+	d.SetId(service.UniqueID)
+	d.Set("team_id", teamID)
 
 	return diags
 }
@@ -141,18 +141,18 @@ func resourceCreateServices(Ctx context.Context, d *schema.ResourceData, m inter
 func resourceUpdateServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 	id := d.Id()
-	if team_id == "" {
+	if teamID == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
-	new_service, serviceErr := CreateServices(Ctx, d, m)
+	newService, serviceErr := CreateServices(Ctx, d, m)
 	if serviceErr != nil {
 		return diag.FromErr(serviceErr)
 
 	}
 
-	_, err := apiclient.Services.UpdateService(team_id, id, new_service)
+	_, err := apiclient.Services.UpdateService(teamID, id, newService)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -162,13 +162,13 @@ func resourceUpdateServices(Ctx context.Context, d *schema.ResourceData, m inter
 func resourceDeleteServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 	id := d.Id()
-	if team_id == "" {
+	if teamID == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
 	var diags diag.Diagnostics
-	err := apiclient.Services.DeleteService(team_id, id)
+	err := apiclient.Services.DeleteService(teamID, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -178,26 +178,26 @@ func resourceDeleteServices(Ctx context.Context, d *schema.ResourceData, m inter
 func resourceReadServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
-	team_id := d.Get("team_id").(string)
+	teamID := d.Get("team_id").(string)
 	id := d.Id()
-	if emptyString(team_id) {
+	if emptyString(teamID) {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
 	var diags diag.Diagnostics
-	service, err := apiclient.Services.GetServicesById(team_id, id)
+	service, err := apiclient.Services.GetServicesByID(teamID, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("name", service.Name)
-	d.Set("escalation_policy", service.Escalation_Policy)
+	d.Set("escalation_policy", service.EscalationPolicy)
 	d.Set("description", service.Description)
 	d.Set("summary", service.Summary)
 	d.Set("collation", service.Collation)
-	d.Set("collation_time", service.Collation_Time)
-	d.Set("sla", service.Sla)
-	d.Set("task_template", service.Task_Template)
-	d.Set("team_priority", service.Team_Priority)
-	d.Set("team_id", team_id)
+	d.Set("collation_time", service.CollationTime)
+	d.Set("sla", service.SLA)
+	d.Set("task_template", service.TaskTemplate)
+	d.Set("team_priority", service.TeamPriority)
+	d.Set("team_id", teamID)
 
 	return diags
 }

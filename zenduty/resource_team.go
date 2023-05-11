@@ -46,7 +46,7 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface
 		if err != nil {
 			return resource.RetryableError(err)
 		} else if task != nil {
-			d.SetId(task.Unique_Id)
+			d.SetId(task.UniqueID)
 		}
 		return nil
 	})
@@ -60,7 +60,7 @@ func resourceTeamCreate(ctx context.Context, d *schema.ResourceData, m interface
 	// if err != nil {
 	// 	return diag.FromErr(err)
 	// }
-	// d.SetId(task.Unique_Id)
+	// d.SetId(task.UniqueID)
 	// return diags
 }
 
@@ -69,7 +69,7 @@ func resourceTeamUpdate(Ctx context.Context, d *schema.ResourceData, m interface
 
 	newteam := &client.CreateTeams{}
 	id := d.Id()
-	newteam.Unique_Id = id
+	newteam.UniqueID = id
 	var diags diag.Diagnostics
 	if v, ok := d.GetOk("name"); ok {
 		newteam.Name = v.(string)
@@ -81,7 +81,7 @@ func resourceTeamUpdate(Ctx context.Context, d *schema.ResourceData, m interface
 		if err != nil {
 			return resource.RetryableError(err)
 		} else if task != nil {
-			d.SetId(task.Unique_Id)
+			d.SetId(task.UniqueID)
 		}
 		return nil
 	})
@@ -115,7 +115,7 @@ func resourceTeamRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	id := d.Id()
 	var diags diag.Diagnostics
 
-	t, err := apiclient.Teams.GetTeamById(id)
+	t, err := apiclient.Teams.GetTeamByID(id)
 	if err != nil {
 		return diag.FromErr(err)
 	}

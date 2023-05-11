@@ -81,8 +81,8 @@ func resourceIntegrationCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	newIntegration := &client.IntegrationCreate{}
 	var diags diag.Diagnostics
-	team_id := d.Get("team_id").(string)
-	service_id := d.Get("service_id").(string)
+	teamID := d.Get("team_id").(string)
+	serviceID := d.Get("service_id").(string)
 	summary := d.Get("summary").(string)
 	if summary != "" {
 		newIntegration.Summary = summary
@@ -95,24 +95,24 @@ func resourceIntegrationCreate(ctx context.Context, d *schema.ResourceData, m in
 		newIntegration.Application = v.(string)
 	}
 	if v, ok := d.GetOk("is_enabled"); ok {
-		newIntegration.Is_Enabled = v.(bool)
+		newIntegration.IsEnabled = v.(bool)
 	}
 	if v, ok := d.GetOk("create_incident_for"); ok {
-		newIntegration.Create_Incident_For = v.(int)
+		newIntegration.CreateIncidentFor = v.(int)
 	}
 	if v, ok := d.GetOk("default_urgency"); ok {
-		newIntegration.Default_Urgency = v.(int)
+		newIntegration.DefaultUrgency = v.(int)
 	}
 
-	integration, err := apiclient.Integrations.CreateIntegration(team_id, service_id, newIntegration)
+	integration, err := apiclient.Integrations.CreateIntegration(teamID, serviceID, newIntegration)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(integration.Unique_Id)
+	d.SetId(integration.UniqueID)
 	// added integration_key in response output
-	d.Set("integration_key", integration.Integration_key)
-	d.Set("is_enabled", integration.Is_Enabled)
-	d.Set("webhook_url", integration.Webhook_url)
+	d.Set("integration_key", integration.IntegrationKey)
+	d.Set("is_enabled", integration.IsEnabled)
+	d.Set("webhook_url", integration.WebhookURL)
 
 	return diags
 }
@@ -123,8 +123,8 @@ func resourceIntegrationUpdate(Ctx context.Context, d *schema.ResourceData, m in
 
 	newIntegration := &client.IntegrationCreate{}
 	var diags diag.Diagnostics
-	team_id := d.Get("team_id").(string)
-	service_id := d.Get("service_id").(string)
+	teamID := d.Get("team_id").(string)
+	serviceID := d.Get("service_id").(string)
 	summary := d.Get("summary").(string)
 	if summary != "" {
 		newIntegration.Summary = summary
@@ -137,22 +137,22 @@ func resourceIntegrationUpdate(Ctx context.Context, d *schema.ResourceData, m in
 		newIntegration.Application = v.(string)
 	}
 	if v, ok := d.GetOk("is_enabled"); ok {
-		newIntegration.Is_Enabled = v.(bool)
+		newIntegration.IsEnabled = v.(bool)
 	}
 	if v, ok := d.GetOk("create_incident_for"); ok {
-		newIntegration.Create_Incident_For = v.(int)
+		newIntegration.CreateIncidentFor = v.(int)
 	}
 	if v, ok := d.GetOk("default_urgency"); ok {
-		newIntegration.Default_Urgency = v.(int)
+		newIntegration.DefaultUrgency = v.(int)
 	}
 
-	integration, err := apiclient.Integrations.UpdateIntegration(team_id, service_id, id, newIntegration)
+	integration, err := apiclient.Integrations.UpdateIntegration(teamID, serviceID, id, newIntegration)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.Set("integration_key", integration.Integration_key)
-	d.Set("is_enabled", integration.Is_Enabled)
-	d.Set("webhook_url", integration.Webhook_url)
+	d.Set("integration_key", integration.IntegrationKey)
+	d.Set("is_enabled", integration.IsEnabled)
+	d.Set("webhook_url", integration.WebhookURL)
 	// added integration_key in response output
 
 	return diags
@@ -162,16 +162,16 @@ func resourceIntegrationDelete(ctx context.Context, d *schema.ResourceData, m in
 	apiclient, _ := m.(*Config).Client()
 
 	id := d.Id()
-	team_id := d.Get("team_id").(string)
-	service_id := d.Get("service_id").(string)
+	teamID := d.Get("team_id").(string)
+	serviceID := d.Get("service_id").(string)
 	var diags diag.Diagnostics
-	if team_id == "" {
+	if teamID == "" {
 		return diag.FromErr(errors.New("team_id is required"))
 	}
-	if service_id == "" {
+	if serviceID == "" {
 		return diag.FromErr(errors.New("service_id is required"))
 	}
-	err := apiclient.Integrations.DeleteIntegration(team_id, service_id, id)
+	err := apiclient.Integrations.DeleteIntegration(teamID, serviceID, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -183,22 +183,22 @@ func resourceIntegrationRead(ctx context.Context, d *schema.ResourceData, m inte
 
 	var diags diag.Diagnostics
 	id := d.Id()
-	team_id := d.Get("team_id").(string)
-	service_id := d.Get("service_id").(string)
+	teamID := d.Get("team_id").(string)
+	serviceID := d.Get("service_id").(string)
 	apiclient, _ := m.(*Config).Client()
 
-	integration, err := apiclient.Integrations.GetIntegrationByID(team_id, service_id, id)
+	integration, err := apiclient.Integrations.GetIntegrationByID(teamID, serviceID, id)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 	d.Set("name", integration.Name)
 	d.Set("application", integration.Application)
 	d.Set("summary", integration.Summary)
-	d.Set("integration_key", integration.Integration_key)
-	d.Set("webhook_url", integration.Webhook_url)
-	d.Set("is_enabled", integration.Is_Enabled)
-	d.Set("create_incident_for", integration.Create_Incident_For)
-	d.Set("default_urgency", integration.Default_Urgency)
+	d.Set("integration_key", integration.IntegrationKey)
+	d.Set("webhook_url", integration.WebhookURL)
+	d.Set("is_enabled", integration.IsEnabled)
+	d.Set("create_incident_for", integration.CreateIncidentFor)
+	d.Set("default_urgency", integration.DefaultUrgency)
 
 	return diags
 }
