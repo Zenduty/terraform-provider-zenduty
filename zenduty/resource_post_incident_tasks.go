@@ -78,7 +78,7 @@ func CreatePostIncidentTask(Ctx context.Context, d *schema.ResourceData, m inter
 
 	newpostincidenttask := &client.PostIncidentTaskObj{}
 
-	if v, ok := d.GetOk("team"); ok {
+	if v, ok := d.GetOk("team_id"); ok {
 		newpostincidenttask.Team = v.(string)
 
 	}

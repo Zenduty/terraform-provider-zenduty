@@ -44,6 +44,8 @@ func Provider() *schema.Provider {
 			"zenduty_globalrouting_rule":  resourceGlobalRoutingRules(),
 			"zenduty_sla":                 resourceSLA(),
 			"zenduty_post_incident_tasks": resourcePostIncidentTasks(),
+			"zenduty_task_templates":      resourceTaskTemplates(),
+			"zenduty_task_template_tasks": resourceTaskTemplateTaskTasks(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
