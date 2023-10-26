@@ -46,6 +46,7 @@ func Provider() *schema.Provider {
 			"zenduty_post_incident_tasks": resourcePostIncidentTasks(),
 			"zenduty_task_templates":      resourceTaskTemplates(),
 			"zenduty_task_template_tasks": resourceTaskTemplateTaskTasks(),
+			"zenduty_team_permissions":    resourceTeamLevelPermissions(),
 		},
 
 		DataSourcesMap: map[string]*schema.Resource{
