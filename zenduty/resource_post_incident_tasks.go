@@ -44,7 +44,7 @@ func resourcePostIncidentTasks() *schema.Resource {
 			},
 			"assigned_to": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"status": {
 				Type:         schema.TypeInt,
@@ -54,7 +54,7 @@ func resourcePostIncidentTasks() *schema.Resource {
 			},
 			"due_in_time": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"creation_date": {
 				Type:     schema.TypeString,
@@ -95,11 +95,16 @@ func CreatePostIncidentTask(Ctx context.Context, d *schema.ResourceData, m inter
 	if v, ok := d.GetOk("assigned_to"); ok {
 		newpostincidenttask.AssignedTo = v.(string)
 	}
+	if v, ok := d.GetOk("status"); ok {
+		newpostincidenttask.Status = v.(int)
+	}
 	if v, ok := d.GetOk("due_in_time"); ok {
-		newpostincidenttask.DueInTime = v.(string)
+		DueInTime := v.(string)
+		newpostincidenttask.DueInTime = &DueInTime
 		parsedTime, parsedErr := time.Parse("2006-01-02 15:04", v.(string))
 		if parsedErr == nil {
-			newpostincidenttask.DueInTime = parsedTime.In(time.UTC).Format(time.RFC3339)
+			formattedTime := parsedTime.In(time.UTC).Format(time.RFC3339)
+			newpostincidenttask.DueInTime = &formattedTime
 		} else {
 			return nil, diag.FromErr(parsedErr)
 		}
@@ -183,12 +188,15 @@ func resourceReadPostIncidentTasks(Ctx context.Context, d *schema.ResourceData, 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
 	d.Set("title", postincidenttask.Title)
 	d.Set("description", postincidenttask.Description)
 	d.Set("assigned_to", postincidenttask.AssignedTo)
 	d.Set("status", postincidenttask.Status)
 	d.Set("team_id", teamID)
-	d.Set("due_in_time", parseDueInTime(postincidenttask.DueInTime))
+	if postincidenttask.DueInTime != nil {
+		d.Set("due_in_time", parseDueInTime(*postincidenttask.DueInTime))
+	}
 	d.Set("creation_date", postincidenttask.CreationDate)
 
 	return diags

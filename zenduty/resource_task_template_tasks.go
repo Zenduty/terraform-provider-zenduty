@@ -90,6 +90,8 @@ func CreateTaskTemplateTask(Ctx context.Context, d *schema.ResourceData, m inter
 	if v, ok := d.GetOk("task_template_id"); ok {
 		newTaskTemplateTask.TaskTemplate = v.(string)
 	}
+	position := d.Get("position").(int)
+	newTaskTemplateTask.Positon = position
 
 	return newTaskTemplateTask, nil
 
