@@ -81,7 +81,7 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 			newAction.ActionType = v.(int)
 		}
 
-		if (newAction.ActionType > 15) || (newAction.ActionType < 1) {
+		if (newAction.ActionType > 18) || (newAction.ActionType < 1) {
 			return nil, diag.FromErr(errors.New("action_type is not valid"))
 		}
 
@@ -89,69 +89,72 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 			value = v.(string)
 		}
 
-		if (newAction.ActionType == 1) || (newAction.ActionType == 2) || (newAction.ActionType == 3) || (newAction.ActionType == 4) || (newAction.ActionType == 5) || (newAction.ActionType == 6) || (newAction.ActionType == 7) || (newAction.ActionType == 8) || (newAction.ActionType == 9) || (newAction.ActionType == 10) || (newAction.ActionType == 11) || (newAction.ActionType == 12) || (newAction.ActionType == 13) || (newAction.ActionType == 14) || (newAction.ActionType == 15) {
-			if (newAction.ActionType != 3) && (value == "") {
-				return nil, diag.FromErr(errors.New("value is required"))
-			}
-			if ((newAction.ActionType == 4) || (newAction.ActionType == 12) || (newAction.ActionType == 13) || (newAction.ActionType == 14) || (newAction.ActionType == 15)) && (!IsValidUUID(value)) {
-				return nil, diag.FromErr(errors.New(value + " is not a valid UUID"))
-			}
-
-			if (newAction.ActionType == 7) && (!(value == "0" || value == "1")) {
-				return nil, diag.FromErr(errors.New("incident urgency should be 0 or 1"))
-			}
-			if newAction.ActionType == 1 {
-				i, err := strconv.Atoi(value)
-				if i < 0 || i > 5 {
-					return nil, diag.FromErr(errors.New("value should be between 0 and 5"))
-				}
-				if err != nil {
-					return nil, diag.FromErr(errors.New("value is not valid"))
-				}
-				newAction.Value = value
-			} else if newAction.ActionType == 3 {
-				value = ""
-			} else if newAction.ActionType == 4 {
-				newAction.EscalationPolicy = value
-				value = ""
-			} else if newAction.ActionType == 6 {
-
-				newAction.AssignedTo = value
-				value = ""
-			} else if newAction.ActionType == 11 {
-				if v, ok := ruleMap["key"]; ok {
-					key = v.(string)
-				}
-				if key == "" {
-					return nil, diag.FromErr(errors.New("key(ie..role_id) is required"))
-				}
-				if !IsValidUUID(key) {
-					return nil, diag.FromErr(errors.New("key(ie..role_id) is not valid UUID"))
-				}
-
-				newAction.Key = key
-
-			} else if newAction.ActionType == 14 {
-				newAction.SLA = value
-				value = ""
-				if newAction.SLA == "" {
-					return nil, diag.FromErr(errors.New("sla is required"))
-				} else if !IsValidUUID(newAction.SLA) {
-					return nil, diag.FromErr(errors.New("sla is not valid UUID"))
-				}
-
-			} else if newAction.ActionType == 15 {
-				newAction.TeamPriority = value
-				value = ""
-				if newAction.TeamPriority == "" {
-					return nil, diag.FromErr(errors.New("team_priority is required"))
-				} else if !IsValidUUID(newAction.TeamPriority) {
-					return nil, diag.FromErr(errors.New("team_priority is not valid UUID"))
-				}
-			}
-
-			newAction.Value = value
+		if ((newAction.ActionType != 3) && (newAction.ActionType != 18)) && (value == "") {
+			return nil, diag.FromErr(errors.New("value is required"))
 		}
+		if ((newAction.ActionType == 4) || (newAction.ActionType == 12) || (newAction.ActionType == 14) || (newAction.ActionType == 15) || (newAction.ActionType == 16)) && (!IsValidUUID(value)) {
+			return nil, diag.FromErr(errors.New(value + " is not a valid UUID"))
+		}
+
+		if (newAction.ActionType == 7) && (!(value == "0" || value == "1")) {
+			return nil, diag.FromErr(errors.New("incident urgency should be 0 or 1"))
+		}
+		if newAction.ActionType == 1 {
+			i, err := strconv.Atoi(value)
+			if i < 0 || i > 5 {
+				return nil, diag.FromErr(errors.New("value should be between 0 and 5"))
+			}
+			if err != nil {
+				return nil, diag.FromErr(errors.New("value is not valid"))
+			}
+			newAction.Value = value
+		} else if newAction.ActionType == 3 {
+			value = ""
+		} else if newAction.ActionType == 4 {
+			newAction.EscalationPolicy = value
+			value = ""
+		} else if newAction.ActionType == 6 {
+
+			newAction.AssignedTo = value
+			value = ""
+		} else if newAction.ActionType == 11 {
+			if v, ok := ruleMap["key"]; ok {
+				key = v.(string)
+			}
+			if key == "" {
+				return nil, diag.FromErr(errors.New("key(ie..role_id) is required"))
+			}
+			if !IsValidUUID(key) {
+				return nil, diag.FromErr(errors.New("key(ie..role_id) is not valid UUID"))
+			}
+
+			newAction.Key = key
+
+		} else if newAction.ActionType == 14 {
+			newAction.SLA = value
+			value = ""
+			if newAction.SLA == "" {
+				return nil, diag.FromErr(errors.New("sla is required"))
+			} else if !IsValidUUID(newAction.SLA) {
+				return nil, diag.FromErr(errors.New("sla is not valid UUID"))
+			}
+
+		} else if newAction.ActionType == 15 {
+			newAction.TeamPriority = value
+			value = ""
+			if newAction.TeamPriority == "" {
+				return nil, diag.FromErr(errors.New("team_priority is required"))
+			} else if !IsValidUUID(newAction.TeamPriority) {
+				return nil, diag.FromErr(errors.New("team_priority is not valid UUID"))
+			}
+		} else if newAction.ActionType == 16 {
+			newAction.TaskTemplates = value
+			value = ""
+		} else if newAction.ActionType == 18 {
+			value = ""
+		}
+
+		newAction.Value = value
 
 		newAlertRule.Actions[i] = newAction
 
@@ -269,6 +272,8 @@ func flattenAlertActions(rule *client.AlertRule) []map[string]interface{} {
 				newAction["value"] = action.SLA
 			} else if action.ActionType == 15 {
 				newAction["value"] = action.TeamPriority
+			} else if action.ActionType == 16 {
+				newAction["value"] = action.TaskTemplates
 			} else {
 				newAction["value"] = action.Value
 			}
