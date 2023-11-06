@@ -79,6 +79,9 @@ resource "zenduty_alertrules" "example_alertrules" {
     * `12` - add tag, value should be the unique_id of the tag
     * `14` - add sla , value should be the unique_id of the sla
     * `15` - add team priority , value should be the unique_id of the team priority
+    * `16` - add task template , value should be the unique_id of the task template
+    * `17` - add assign incident responder , value should be the unique_id of the responder
+    * `18` - hash entity_id, value is not required
 
 * `value` (Required)(string) - The value of the action. (not required for `3`)
 * `key`  (Optional)(string) - The key of the action. (required for `11`)

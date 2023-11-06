@@ -48,6 +48,8 @@ github.com/Zenduty/zenduty-go-sdk v0.1.8 h1:vREmE/XO+nVR7oZ0JLp2W18QTl8r3a6ymsYY
 github.com/Zenduty/zenduty-go-sdk v0.1.8/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
 github.com/Zenduty/zenduty-go-sdk v0.1.9 h1:8sHPvCMyAZL+bRJQvSmweIFCq046OFRE450v5yw/N3s=
 github.com/Zenduty/zenduty-go-sdk v0.1.9/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
+github.com/Zenduty/zenduty-go-sdk v0.2.0 h1:2Z7R2cUpfUL1TRUV0+ePApwaRMFOkb+0zDjedp+cBmg=
+github.com/Zenduty/zenduty-go-sdk v0.2.0/go.mod h1:XnK1p2uyFpBUwbW+xecKSww0klZOSKKoywobqGDlFE8=
 github.com/acomagu/bufpipe v1.0.3 h1:fxAGrHZTgQ9w5QqVItgzwj235/uYZYgbXitB+dLupOk=
 github.com/acomagu/bufpipe v1.0.3/go.mod h1:mxdxdup/WdsKVreO5GpW4+M/1CE2sMG4jeGJ2sYmHc4=
 github.com/agext/levenshtein v1.2.1/go.mod h1:JEDfjyjHDjOF/1e4FlBE/PkbqA9OfWu2ki2W0IB5558=
