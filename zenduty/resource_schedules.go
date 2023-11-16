@@ -66,7 +66,7 @@ func resourceSchedules() *schema.Resource {
 						},
 						"rotation_end_time": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 						},
 						"users": {
 							Type:     schema.TypeList,
