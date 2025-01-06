@@ -3,6 +3,7 @@ package zenduty
 import (
 	"encoding/json"
 	"fmt"
+	"net/mail"
 	"regexp"
 	"strings"
 
