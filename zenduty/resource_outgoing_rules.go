@@ -16,7 +16,7 @@ func resourceOutgoingRules() *schema.Resource {
 		CreateContext: resourceCreateOutgoingRules,
 		UpdateContext: resourceUpdateOutgoingRules,
 		DeleteContext: resourceDeleteOutgoingRules,
-		ReadContext:   resourceReadOutgoingRules,
+		ReadContext:   wrapReadWith404(resourceReadOutgoingRules),
 		Importer: &schema.ResourceImporter{
 			State: resourceOutgoingRulesImporter,
 		},

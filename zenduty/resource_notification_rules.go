@@ -14,7 +14,7 @@ import (
 func resourceNotificationRules() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateNotificationRule,
-		ReadContext:   resourceReadNotificationRule,
+		ReadContext:   wrapReadWith404(resourceReadNotificationRule),
 		UpdateContext: resourceUpdateNotificationRule,
 		DeleteContext: resourceDeleteNotificationRule,
 		Importer: &schema.ResourceImporter{

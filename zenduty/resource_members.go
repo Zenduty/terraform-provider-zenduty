@@ -13,7 +13,7 @@ import (
 func resourceMembers() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMemberCreate,
-		ReadContext:   resourceMemberRead,
+		ReadContext:   wrapReadWith404(resourceMemberRead),
 		UpdateContext: resourceMemberUpdate,
 		DeleteContext: resourceMemberDelete,
 		Schema: map[string]*schema.Schema{

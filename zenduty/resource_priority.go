@@ -16,7 +16,7 @@ func resourcePriority() *schema.Resource {
 		CreateContext: resourceCreatePriority,
 		UpdateContext: resourceUpdatePriority,
 		DeleteContext: resourceDeletePriority,
-		ReadContext:   resourceReadPriority,
+		ReadContext:   wrapReadWith404(resourceReadPriority),
 		Importer: &schema.ResourceImporter{
 			State: resourcePriorityImporter,
 		},
@@ -32,7 +32,7 @@ func resourcePriority() *schema.Resource {
 			},
 			"color": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"team_id": {
 				Type:             schema.TypeString,

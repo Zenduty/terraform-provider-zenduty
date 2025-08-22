@@ -19,7 +19,7 @@ func resourceIntegrations() *schema.Resource {
 		CreateContext: resourceIntegrationCreate,
 		UpdateContext: resourceIntegrationUpdate,
 		DeleteContext: resourceIntegrationDelete,
-		ReadContext:   resourceIntegrationRead,
+		ReadContext:   wrapReadWith404(resourceIntegrationRead),
 		Importer: &schema.ResourceImporter{
 			State: resourceIntegrationImporter,
 		},

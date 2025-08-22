@@ -18,7 +18,7 @@ func resourceServices() *schema.Resource {
 		CreateContext: resourceCreateServices,
 		UpdateContext: resourceUpdateServices,
 		DeleteContext: resourceDeleteServices,
-		ReadContext:   resourceReadServices,
+		ReadContext:   wrapReadWith404(resourceReadServices),
 		Importer: &schema.ResourceImporter{
 			State: resourceServiceImporter,
 		},

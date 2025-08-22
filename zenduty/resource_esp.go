@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
@@ -19,7 +20,7 @@ func resourceEsp() *schema.Resource {
 		CreateContext: resourceCreateEsp,
 		UpdateContext: resourceUpdateEsp,
 		DeleteContext: resourceDeleteEsp,
-		ReadContext:   resourceReadEsp,
+		ReadContext:   wrapReadWith404(resourceReadEsp),
 		Importer: &schema.ResourceImporter{
 			State: resourceEscalationPolicyImporter,
 		},
@@ -50,7 +51,10 @@ func resourceEsp() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 						},
-
+						"position": {
+							Type:     schema.TypeInt,
+							Optional: true,
+						},
 						"targets": {
 							Type:     schema.TypeList,
 							Optional: true,
@@ -62,6 +66,10 @@ func resourceEsp() *schema.Resource {
 									},
 									"target_id": {
 										Type:     schema.TypeString,
+										Optional: true,
+									},
+									"position": {
+										Type:     schema.TypeInt,
 										Optional: true,
 									},
 								},
@@ -151,24 +159,32 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 }
 
 func flattenRules(rules []client.Rules) []map[string]interface{} {
+	sort.SliceStable(rules, func(i, j int) bool {
+		return rules[i].Position < rules[j].Position
+	})
+
 	result := make([]map[string]interface{}, len(rules))
 	for i, rule := range rules {
-
 		result[i] = map[string]interface{}{
-			"delay": rule.Delay,
-
-			"targets": flattenTargets(rule.Targets),
+			"delay":    rule.Delay,
+			"position": rule.Position,
+			"targets":  flattenTargets(rule.Targets),
 		}
 	}
 	return result
 }
 
 func flattenTargets(targets []client.Targets) []map[string]interface{} {
+	sort.SliceStable(targets, func(i, j int) bool {
+		return targets[i].Position < targets[j].Position
+	})
+
 	result := make([]map[string]interface{}, len(targets))
 	for i, target := range targets {
 		result[i] = map[string]interface{}{
 			"target_type": target.TargetType,
 			"target_id":   target.TargetID,
+			"position":    target.Position,
 		}
 	}
 	return result

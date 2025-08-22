@@ -121,3 +121,17 @@ func genrateUUID() string {
 	uuidString := id.String()
 	return uuidString
 }
+
+func normalizeJSON(jsonString string) (string, error) {
+	var jsonData interface{}
+	if err := json.Unmarshal([]byte(jsonString), &jsonData); err != nil {
+		return "", err
+	}
+
+	normalizedBytes, err := json.Marshal(jsonData)
+	if err != nil {
+		return "", err
+	}
+
+	return string(normalizedBytes), nil
+}

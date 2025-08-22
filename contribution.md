@@ -23,14 +23,14 @@ For example:
 
 ## For Mac
 ```
-mkdir -p ../localtesting/.terraform/plugins/zenduty.com/zenduty/zenduty/0.0.1/darwin_arm64
-cp terraform-provider-zenduty ../localtesting/.terraform/plugins/zenduty.com/zenduty/zenduty/0.0.1/darwin_arm64
+mkdir -p ~/.terraform.d/plugins/zenduty.com/contributor/zenduty/0.0.1/darwin_arm64
+cp terraform-provider-zenduty ~/.terraform.d/plugins/zenduty.com/contributor/zenduty/0.0.1/darwin_arm64/
 ```
 
 ## For Linux
 ```
-mkdir -p ../localtesting/.terraform/plugins/zenduty.com/zenduty/zenduty/0.0.1/linux_amd64
-cp terraform-provider-zenduty ../localtesting/.terraform/plugins/zenduty.com/zenduty/0.0.1/linux_amd64
+mkdir -p ~/.terraform.d/plugins/zenduty.com/contributor/zenduty/0.0.1/linux_amd64
+cp terraform-provider-zenduty ~/.terraform.d/plugins/zenduty.com/contributor/zenduty/0.0.1/linux_amd64/
 ```
 
 ```
@@ -46,7 +46,7 @@ terraform {
   required_providers {
     zenduty = {
       version = "= 0.0.1"
-      source  = "zenduty.com/zenduty/zenduty"
+      source  = "zenduty.com/contributor/zenduty"
     }
   }
 }
@@ -74,7 +74,7 @@ output "user" {
 Run the terraform script like:
 
 ```
-terraform init -plugin-dir=.terraform/plugins/
+terraform init
 terraform plan
 terraform apply
 terraform destroy

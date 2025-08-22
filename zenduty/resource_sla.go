@@ -19,7 +19,7 @@ func resourceSLA() *schema.Resource {
 		CreateContext: resourceCreateSLA,
 		UpdateContext: resourceUpdateSLA,
 		DeleteContext: resourceDeleteSLA,
-		ReadContext:   resourceReadSLA,
+		ReadContext:   wrapReadWith404(resourceReadSLA),
 		Importer: &schema.ResourceImporter{
 			State: resourceSLAImporter,
 		},
