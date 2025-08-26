@@ -76,7 +76,9 @@ resource "zenduty_alertrules" "example_alertrules" {
     * `9` - change summary , value should be the summary to change to
     * `10` - change entry_id , value should be the entity to change to
     * `11` - assign role to user , `key` should be unique_id of the role , value should be the username of the user
-    * `12` - add tag, value should be the unique_id of the tag
+    * `12` - Add tag. The value must be comma-separated.
+        * For existing tags, use the unique_id.
+        * For dynamic tags, use placeholders in {{ }} format.
     * `14` - add sla , value should be the unique_id of the sla
     * `15` - add team priority , value should be the unique_id of the team priority
     * `16` - add task template , value should be the unique_id of the task template

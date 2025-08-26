@@ -92,7 +92,7 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 		if ((newAction.ActionType != 3) && (newAction.ActionType != 18)) && (value == "") {
 			return nil, diag.FromErr(errors.New("value is required"))
 		}
-		if ((newAction.ActionType == 4) || (newAction.ActionType == 12) || (newAction.ActionType == 15) || (newAction.ActionType == 16)) && (!IsValidUUID(value)) {
+		if ((newAction.ActionType == 4) || (newAction.ActionType == 14) || (newAction.ActionType == 15) || (newAction.ActionType == 16)) && (!IsValidUUID(value)) {
 			return nil, diag.FromErr(errors.New(value + " is not a valid UUID"))
 		}
 

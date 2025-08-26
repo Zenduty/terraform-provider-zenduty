@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"sort"
 	"strings"
 
@@ -53,7 +52,11 @@ func resourceEsp() *schema.Resource {
 						},
 						"position": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
+						},
+						"unique_id": {
+							Type:     schema.TypeString,
+							Computed: true,
 						},
 						"targets": {
 							Type:     schema.TypeList,
@@ -70,7 +73,7 @@ func resourceEsp() *schema.Resource {
 									},
 									"position": {
 										Type:     schema.TypeInt,
-										Optional: true,
+										Computed: true,
 									},
 								},
 							},
@@ -118,6 +121,7 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 	newEsp.Rules = make([]client.Rules, len(rules))
 	oldDelay := 0
 	for i, rule := range rules {
+
 		ruleMap := rule.(map[string]interface{})
 		newRule := client.Rules{}
 		if v, ok := ruleMap["delay"]; ok {
@@ -126,17 +130,25 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 			}
 			newRule.Delay = v.(int)
 			if newRule.Delay < oldDelay && i != 0 {
-				return nil, diag.FromErr(fmt.Errorf("delay must be greater than previous %d should be greater than %d", newRule.Delay, oldDelay))
+				return nil, diag.Errorf("delay must be greater than previous %d should be greater than %d", newRule.Delay, oldDelay)
 			}
 			oldDelay = newRule.Delay
 
 		}
-		// if v, ok := ruleMap["position"]; ok {
-		// 	newRule.Position = v.(int)
-		// }
-		// if v, ok := ruleMap["unique_id"]; ok {
-		// 	newRule.UniqueID = v.(string)
-		// }
+		// Check if position was explicitly set by user
+		if v, exists := ruleMap["position"]; exists && v != nil {
+			// Only use user-specified position if it's not 0 (which might be default)
+			if v.(int) != 0 {
+				newRule.Position = v.(int)
+			} else {
+				// Position is 0, which might be default, so auto-assign
+				newRule.Position = i + 1
+			}
+		} else {
+			// No position specified, auto-assign (starting from 1)
+			newRule.Position = i + 1
+		}
+
 		if v, ok := ruleMap["targets"]; ok {
 			targets := v.([]interface{})
 			newRule.Targets = make([]client.Targets, len(targets))
@@ -149,11 +161,27 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 				if v, ok := targetMap["target_id"]; ok {
 					newTarget.TargetID = v.(string)
 				}
+				// Check if target position was explicitly set by user
+				if v, exists := targetMap["position"]; exists && v != nil {
+					// Only use user-specified position if it's not 0 (which might be default)
+					if v.(int) != 0 {
+						newTarget.Position = v.(int)
+					} else {
+						// Position is 0, which might be default, so auto-assign
+						newTarget.Position = j
+					}
+				} else {
+					// No position specified, auto-assign
+					newTarget.Position = j
+				}
+
 				newRule.Targets[j] = newTarget
 			}
 		}
+
 		newEsp.Rules[i] = newRule
 	}
+
 	return newEsp, nil
 
 }
@@ -237,7 +265,6 @@ func resourceDeleteEsp(Ctx context.Context, d *schema.ResourceData, m interface{
 	apiclient, _ := m.(*Config).Client()
 
 	teamID := d.Get("team_id").(string)
-	log.Printf("team_idss: %s", teamID)
 	id := d.Id()
 	if teamID == "" {
 		return diag.FromErr(errors.New("team_id is required"))
@@ -256,8 +283,6 @@ func resourceReadEsp(Ctx context.Context, d *schema.ResourceData, m interface{})
 	if v, ok := d.GetOk("team_id"); ok {
 		teamID = v.(string)
 	}
-
-	log.Printf("team_id: %s", teamID)
 
 	id := d.Id()
 	if teamID == "" {
