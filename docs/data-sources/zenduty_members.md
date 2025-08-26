@@ -49,7 +49,6 @@ The following attributes are exported as list of maps:
     * `last_name` - The last name of the user.
     * `email` - The email of the user.
 * `role` - The role of the member in the team.
-* `joining_date` - The date when the member joined the team (computed, may not be available from API).
 
 ### Required
 
