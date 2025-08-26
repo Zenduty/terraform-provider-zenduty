@@ -17,7 +17,7 @@ func resourceMaintenanceWindow() *schema.Resource {
 		CreateContext: resourceCreateManintenances,
 		UpdateContext: resourceUpdateManintenances,
 		DeleteContext: resourceDeleteManintenances,
-		ReadContext:   resourceReadManintenances,
+		ReadContext:   wrapReadWith404(resourceReadManintenances),
 		Importer: &schema.ResourceImporter{
 			State: resourceMaintenanceImporter,
 		},

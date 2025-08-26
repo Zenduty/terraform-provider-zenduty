@@ -13,7 +13,7 @@ import (
 func resourceUser() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateUser,
-		ReadContext:   resourceUserRead,
+		ReadContext:   wrapReadWith404(resourceUserRead),
 		UpdateContext: resourceUpdateUser,
 		DeleteContext: resourceDeleteUser,
 		Importer: &schema.ResourceImporter{

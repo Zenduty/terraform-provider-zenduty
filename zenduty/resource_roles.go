@@ -18,7 +18,7 @@ func resourceRoles() *schema.Resource {
 		CreateContext: resourceRoleCreate,
 		UpdateContext: resourceRoleUpdate,
 		DeleteContext: resourceRoleDelete,
-		ReadContext:   resourceRoleRead,
+		ReadContext:   wrapReadWith404(resourceRoleRead),
 		Importer: &schema.ResourceImporter{
 			State: resourceIncidentRoleImporter,
 		},

@@ -15,7 +15,7 @@ import (
 func resourceTeamLevelPermissions() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateTeamLeveLPermissions,
-		ReadContext:   resourceReadTeamLeveLPermissions,
+		ReadContext:   wrapReadWith404(resourceReadTeamLeveLPermissions),
 		UpdateContext: resourceUpdateTeamLeveLPermissions,
 		DeleteContext: resourceDeleteTeamLeveLPermissions,
 		Importer: &schema.ResourceImporter{

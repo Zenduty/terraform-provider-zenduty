@@ -16,7 +16,7 @@ func resourceTags() *schema.Resource {
 		CreateContext: resourceCreateTags,
 		UpdateContext: resourceUpdateTags,
 		DeleteContext: resourceDeleteTags,
-		ReadContext:   resourceReadTag,
+		ReadContext:   wrapReadWith404(resourceReadTag),
 		Importer: &schema.ResourceImporter{
 			State: resourceTagImporter,
 		},
@@ -28,7 +28,7 @@ func resourceTags() *schema.Resource {
 			},
 			"color": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"team_id": {
 				Type:             schema.TypeString,

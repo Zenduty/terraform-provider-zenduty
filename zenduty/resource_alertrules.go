@@ -17,7 +17,7 @@ func resourceAlertRules() *schema.Resource {
 		CreateContext: resourceCreateAlertRules,
 		UpdateContext: resourceUpdateAlertRules,
 		DeleteContext: resourceDeleteAlertRules,
-		ReadContext:   resourceReadAlertRules,
+		ReadContext:   wrapReadWith404(resourceReadAlertRules),
 		Importer: &schema.ResourceImporter{
 			State: resourceAlertRulesImporter,
 		},
@@ -92,7 +92,7 @@ func AlertRuleAction(Ctx context.Context, d *schema.ResourceData, m interface{},
 		if ((newAction.ActionType != 3) && (newAction.ActionType != 18)) && (value == "") {
 			return nil, diag.FromErr(errors.New("value is required"))
 		}
-		if ((newAction.ActionType == 4) || (newAction.ActionType == 12) || (newAction.ActionType == 14) || (newAction.ActionType == 15) || (newAction.ActionType == 16)) && (!IsValidUUID(value)) {
+		if ((newAction.ActionType == 4) || (newAction.ActionType == 14) || (newAction.ActionType == 15) || (newAction.ActionType == 16)) && (!IsValidUUID(value)) {
 			return nil, diag.FromErr(errors.New(value + " is not a valid UUID"))
 		}
 
@@ -252,7 +252,19 @@ func resourceReadAlertRules(Ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 	d.SetId(rule.UniqueID)
-	d.Set("rule_json", rule.RuleJSON)
+	// Normalize JSON before setting to avoid formatting issues
+	if rule.RuleJSON != "" {
+		normalizedJSON, err := normalizeJSON(rule.RuleJSON)
+		if err != nil {
+			// If normalization fails, use original JSON
+			d.Set("rule_json", rule.RuleJSON)
+		} else {
+			d.Set("rule_json", normalizedJSON)
+		}
+	} else {
+		d.Set("rule_json", rule.RuleJSON)
+	}
+
 	d.Set("actions", flattenAlertActions(rule))
 	d.Set("description", rule.Description)
 

@@ -18,7 +18,7 @@ func resourceTaskTemplates() *schema.Resource {
 		CreateContext: resourceCreateTaskTemplates,
 		UpdateContext: resourceUpdateTaskTemplates,
 		DeleteContext: resourceDeleteTaskTemplates,
-		ReadContext:   resourceReadTaskTemplates,
+		ReadContext:   wrapReadWith404(resourceReadTaskTemplates),
 		Importer: &schema.ResourceImporter{
 			State: resourceTaskTemplatesImporter,
 		},

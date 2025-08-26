@@ -20,7 +20,7 @@ func resourcePostIncidentTasks() *schema.Resource {
 		CreateContext: resourceCreatePostIncidentTasks,
 		UpdateContext: resourceUpdatePostIncidentTasks,
 		DeleteContext: resourceDeletePostIncidentTasks,
-		ReadContext:   resourceReadPostIncidentTasks,
+		ReadContext:   wrapReadWith404(resourceReadPostIncidentTasks),
 		Importer: &schema.ResourceImporter{
 			State: resourcePostIncidentTasksImporter,
 		},

@@ -15,7 +15,7 @@ import (
 func resourceAccountRole() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateAccountRole,
-		ReadContext:   resourceReadAccountRole,
+		ReadContext:   wrapReadWith404(resourceReadAccountRole),
 		UpdateContext: resourceUpdateAccountRole,
 		DeleteContext: resourceDeleteAccountRole,
 		Importer: &schema.ResourceImporter{

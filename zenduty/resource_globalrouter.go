@@ -13,7 +13,7 @@ func resourceGlobalRouter() *schema.Resource {
 		CreateContext: resourceGlobalRouterCreate,
 		UpdateContext: resourceGlobalRouterUpdate,
 		DeleteContext: resourceGlobalRouterDelete,
-		ReadContext:   resourceGlobalRouterRead,
+		ReadContext:   wrapReadWith404(resourceGlobalRouterRead),
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},

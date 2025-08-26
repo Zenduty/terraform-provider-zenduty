@@ -15,7 +15,7 @@ import (
 func resourceTeam() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceTeamCreate,
-		ReadContext:   resourceTeamRead,
+		ReadContext:   wrapReadWith404(resourceTeamRead),
 		UpdateContext: resourceTeamUpdate,
 		DeleteContext: resourceTeamDelete,
 		Importer: &schema.ResourceImporter{

@@ -20,7 +20,7 @@ func resourceSchedules() *schema.Resource {
 		CreateContext: resourceCreateSchedule,
 		UpdateContext: resourceUpdateSchedule,
 		DeleteContext: resourceDeleteSchedule,
-		ReadContext:   resourceReadSchedule,
+		ReadContext:   wrapReadWith404(resourceReadSchedule),
 		Importer: &schema.ResourceImporter{
 			State: resourceScheduleImporter,
 		},

@@ -19,7 +19,7 @@ func resourceTaskTemplateTaskTasks() *schema.Resource {
 		CreateContext: resourceCreateTaskTemplateTaskTasks,
 		UpdateContext: resourceUpdateTaskTemplateTaskTasks,
 		DeleteContext: resourceDeleteTaskTemplateTaskTasks,
-		ReadContext:   resourceReadTaskTemplateTaskTasks,
+		ReadContext:   wrapReadWith404(resourceReadTaskTemplateTaskTasks),
 		Importer: &schema.ResourceImporter{
 			State: resourceTaskTemplateTaskTasksImporter,
 		},

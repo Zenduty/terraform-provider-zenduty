@@ -17,7 +17,7 @@ func resourceGlobalRoutingRules() *schema.Resource {
 		CreateContext: resourceCreateRoutingRules,
 		UpdateContext: resourceUpdateRoutingRules,
 		DeleteContext: resourceDeleteRoutingRules,
-		ReadContext:   resourceReadRoutingRules,
+		ReadContext:   wrapReadWith404(resourceReadRoutingRules),
 		Importer: &schema.ResourceImporter{
 			State: resourceRouterRulesImporter,
 		},
@@ -166,7 +166,17 @@ func resourceReadRoutingRules(Ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 	d.SetId(rule.UniqueID)
-	d.Set("rule_json", rule.RuleJSON)
+	if rule.RuleJSON != "" {
+		normalizedJSON, err := normalizeJSON(rule.RuleJSON)
+		if err != nil {
+			// If normalization fails, use original JSON
+			d.Set("rule_json", rule.RuleJSON)
+		} else {
+			d.Set("rule_json", normalizedJSON)
+		}
+	} else {
+		d.Set("rule_json", rule.RuleJSON)
+	}
 	d.Set("actions", flattenRoutingActions(rule))
 	d.Set("name", rule.Name)
 

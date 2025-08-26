@@ -2,6 +2,8 @@ package zenduty
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 
@@ -13,9 +15,12 @@ import (
 func resourceMembers() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceMemberCreate,
-		ReadContext:   resourceMemberRead,
+		ReadContext:   wrapReadWith404(resourceMemberRead),
 		UpdateContext: resourceMemberUpdate,
 		DeleteContext: resourceMemberDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: resourceMemberImporter,
+		},
 		Schema: map[string]*schema.Schema{
 			"team": {
 				Type:             schema.TypeString,
@@ -114,10 +119,33 @@ func resourceMemberRead(ctx context.Context, d *schema.ResourceData, m interface
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	d.SetId(member.UniqueID)
 	d.Set("team", member.Team)
-	d.Set("user", member.User)
+	d.Set("user", member.User.Username) // Extract username from User object
 	d.Set("role", member.Role)
 
 	return diags
+}
+
+func resourceMemberImporter(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
+	// Import format: <team_id>/<member_id>
+	parts := strings.Split(d.Id(), "/")
+	if len(parts) != 2 {
+		return nil, fmt.Errorf("unexpected format of id (%q), expected <team_id>/<member_id>", d.Id())
+	}
+
+	teamID := parts[0]
+	memberID := parts[1]
+
+	// Validate UUIDs
+	if !IsValidUUID(teamID) {
+		return nil, fmt.Errorf("invalid team_id (%q)", teamID)
+	}
+	if !IsValidUUID(memberID) {
+		return nil, fmt.Errorf("invalid member_id (%q)", memberID)
+	}
+
+	d.SetId(memberID)
+	d.Set("team", teamID)
+
+	return []*schema.ResourceData{d}, nil
 }

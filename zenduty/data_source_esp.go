@@ -76,6 +76,10 @@ func dataSourceEsp() *schema.Resource {
 													Type:     schema.TypeString,
 													Computed: true,
 												},
+												"position": {
+													Type:     schema.TypeInt,
+													Computed: true,
+												},
 											},
 										},
 									},
@@ -133,6 +137,7 @@ func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface
 					targets[k] = map[string]interface{}{
 						"target_type": target.TargetType,
 						"target_id":   target.TargetID,
+						"position":    target.Position,
 					}
 				}
 				rules[j]["targets"] = targets
@@ -176,6 +181,7 @@ func dataSourceEspsRead(ctx context.Context, d *schema.ResourceData, m interface
 						targets[k] = map[string]interface{}{
 							"target_type": target.TargetType,
 							"target_id":   target.TargetID,
+							"position":    target.Position,
 						}
 					}
 					rules[j]["targets"] = targets
