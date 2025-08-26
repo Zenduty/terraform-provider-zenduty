@@ -16,7 +16,7 @@ func wrapReadWith404(readFunc schema.ReadContextFunc) schema.ReadContextFunc {
 
 		for _, diagItem := range diags {
 			if isNotFound(diagItem) {
-				log.Printf("[WARN] Removing resource %s because it's gone", d.Id())
+				log.Printf("[INFO] Removing resource %s because it's gone", d.Id())
 				d.SetId("")
 				return nil
 			}
