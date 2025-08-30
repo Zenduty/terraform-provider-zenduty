@@ -42,7 +42,7 @@ func resourceUser() *schema.Resource {
 			"role": {
 				Type:         schema.TypeInt,
 				Optional:     true,
-				ValidateFunc: validation.IntBetween(2, 3),
+				ValidateFunc: validation.IntBetween(1, 3),
 				Default:      3,
 			},
 		},
