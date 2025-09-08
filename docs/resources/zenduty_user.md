@@ -34,7 +34,7 @@ resource "zenduty_user" "demouser" {
 * `first_name` (Required) - Firstname of the user
 * `last_name` (Required) - Lastname of the user
 * `team` (Required) - Unique of the team to which the user is to be invited
-* `role` (Optional) - Role of the user (`2` for admin , `3` for user) set to `3` while creation.
+* `role` (Optional) - Role of the user (`1` for owner, `2` for admin , `3` for user) set to `3` while creation.
 
 ## Attributes Reference
 
