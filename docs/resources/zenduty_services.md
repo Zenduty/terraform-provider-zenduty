@@ -44,8 +44,8 @@ resource "zenduty_services" "exampleservice" {
 * `escalation_policy` (Required) - Unique id of the escalation policy to be used by the service
 * `description` (Optional) - Description of the service 
 * `summary` (Optional) - Summary of the service
-*  `collation` (Optional)  - Alert collation mode: `0` (off), `1` (time-based) or `3` (content-based). Content-based collation is configured with an alert grouping policy.
-* `collation_time` (Optional) - The collation window in minutes, `1` to `1440`. Required when `collation` is not `0`, and must be `0` when collation is off.
+*  `collation` (Optional)  - Alert collation mode: `0` (off), `1` (time-based) or `3` (content-based). Content-based collation additionally requires a `zenduty_alert_grouping_policy` resource for the service.
+* `collation_time` (Optional) - The collation window in minutes, `1` to `1440`. Required whenever `collation` is enabled (`1` or `3`), and must be left unset (`0`) when `collation` is `0`.
 * `sla` (Optional) - The SLA value for the service.
 * `task_template` (Optional) - The task template value for the service.
 * `team_priority` (Optional) - The team priority value for the service.
