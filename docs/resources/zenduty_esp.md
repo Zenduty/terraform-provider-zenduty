@@ -106,6 +106,37 @@ resource "zenduty_esp" "esp1" {
 
 ```
 
+## Round-Robin Assignment Example
+
+By default every target of the rule is notified and the incident stays unassigned. With
+`assignee_strategy = 2` ("Assign via Round-Robin" in the web UI) each new incident is assigned to the
+next target of the first rule in turn. `notify_round_robin_assignee_only = true` ("Notify/Call
+round-robin assignee only") additionally limits notifications and calls to that assignee.
+
+```hcl
+
+resource "zenduty_esp" "round_robin" {
+    name    = "Round-robin escalation policy"
+    team_id = zenduty_teams.exampleteam.id
+
+    assignee_strategy                = 2    # assign via round-robin
+    notify_round_robin_assignee_only = true # notify/call only the assignee
+
+    rules {
+        delay = 0
+        targets {
+            target_type = 2
+            target_id   = data.zenduty_user.user1.users[0].username
+        }
+        targets {
+            target_type = 2
+            target_id   = data.zenduty_user.user2.users[0].username
+        }
+    }
+}
+
+```
+
 ## Argument Reference
 
 * `team_id` (Required, Forces new resource) - The unique_id of the team to create the escalation policy in.
@@ -116,6 +147,8 @@ resource "zenduty_esp" "esp1" {
 * `move_to_next` (Optional) - The move_to_next of the escalation policy.
 * `global_ep` (Optional, Forces new resource) - Create the policy as a global (account-level) escalation policy instead of a team-level one. Defaults to `false`.
 * `repeat_policy` (Optional) (Number) - The number of times to repeat the escalation policy, ranging from `0` to `10`.
+* `assignee_strategy` (Optional) (Number) - How incidents routed to the policy are assigned. `1` (default) notifies every target and leaves the incident unassigned. `2` assigns each new incident to the next target of the first rule in round-robin order ("Assign via Round-Robin" in the web UI).
+* `notify_round_robin_assignee_only` (Optional) (Boolean) - Notify or call only the round-robin assignee instead of every target of the rule ("Notify/Call round-robin assignee only" in the web UI, `call_rr_assignee` in the API). Defaults to `false` and can only be `true` when `assignee_strategy` is `2`.
 * `delay` (Optional) (Number) - The delay of the rule in minutes.
 * `targets` (see [above for nested schema](#nestedblock--rules--targets))
 * `target_type` (Optional) (Number) -  values are `1` for schedule `2` for user
@@ -161,6 +194,8 @@ resource "zenduty_esp" "esp1" {
 - **description** (String)
 - **move_to_next** (Boolean)
 - **repeat_policy** (Number) -> range from `0` to `10`
+- **assignee_strategy** (Number) -> `1` any (default) or `2` round-robin
+- **notify_round_robin_assignee_only** (Boolean) -> requires `assignee_strategy = 2`
 - **rules** (Block List) (see [above rules schema](#nestedblock--rules))
 - **summary** (String)
 

@@ -57,6 +57,9 @@ The following attributes are exported as list of maps:
         `target_id` - The unique_id of the target.
 * `repeat_policy` - Number of times the ESP should repeat.
 * `move_to_next`(bool) - Whether the ESP should move to the next ESP.
+* `global_ep`(bool) - Whether the ESP is a global (account-level) escalation policy.
+* `assignee_strategy` - How incidents are assigned: `1` notifies every target, `2` assigns via round-robin.
+* `notify_round_robin_assignee_only`(bool) - Whether only the round-robin assignee is notified or called.
 
   
 

@@ -20,6 +20,7 @@ func resourceEsp() *schema.Resource {
 		UpdateContext: resourceUpdateEsp,
 		DeleteContext: resourceDeleteEsp,
 		ReadContext:   resourceReadEsp,
+		CustomizeDiff: validateEspDiff,
 		Importer: &schema.ResourceImporter{
 			State: resourceEscalationPolicyImporter,
 		},
@@ -98,8 +99,64 @@ func resourceEsp() *schema.Resource {
 				ForceNew:    true,
 				Description: "Create as a global (account-level) escalation policy instead of a team-level one.",
 			},
+			"assignee_strategy": {
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      client.AssigneeStrategyAny,
+				ValidateFunc: validation.IntInSlice([]int{client.AssigneeStrategyAny, client.AssigneeStrategyRoundRobin}),
+				Description:  "Incident assignment: 1 notifies every target (default), 2 assigns via round-robin.",
+			},
+			"notify_round_robin_assignee_only": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Notify only the round-robin assignee. Requires assignee_strategy = 2.",
+			},
 		},
 	}
+}
+
+// validateEspAssignmentSettings rejects unknown strategies and notify-only without round-robin.
+func validateEspAssignmentSettings(strategy int, notifyRRAssigneeOnly bool) error {
+	if strategy != client.AssigneeStrategyAny && strategy != client.AssigneeStrategyRoundRobin {
+		return fmt.Errorf("assignee_strategy must be %d (any) or %d (round-robin), got %d",
+			client.AssigneeStrategyAny, client.AssigneeStrategyRoundRobin, strategy)
+	}
+	if notifyRRAssigneeOnly && strategy != client.AssigneeStrategyRoundRobin {
+		return fmt.Errorf("notify_round_robin_assignee_only can only be true when assignee_strategy is %d (round-robin)",
+			client.AssigneeStrategyRoundRobin)
+	}
+	return nil
+}
+
+func validateEspDiff(ctx context.Context, diff *schema.ResourceDiff, m interface{}) error {
+	if !diff.NewValueKnown("assignee_strategy") || !diff.NewValueKnown("notify_round_robin_assignee_only") {
+		return nil
+	}
+	return validateEspAssignmentSettings(diff.Get("assignee_strategy").(int), diff.Get("notify_round_robin_assignee_only").(bool))
+}
+
+// expandEspAssignmentSettings builds assignment_settings; it is always included in the payload.
+func expandEspAssignmentSettings(d *schema.ResourceData) (*client.EscalationPolicyAssignmentSettings, error) {
+	settings := &client.EscalationPolicyAssignmentSettings{
+		AssigneeStrategy: d.Get("assignee_strategy").(int),
+		CallRRAssignee:   d.Get("notify_round_robin_assignee_only").(bool),
+	}
+	if settings.AssigneeStrategy == 0 {
+		settings.AssigneeStrategy = client.AssigneeStrategyAny
+	}
+	if err := validateEspAssignmentSettings(settings.AssigneeStrategy, settings.CallRRAssignee); err != nil {
+		return nil, err
+	}
+	return settings, nil
+}
+
+// flattenEspAssignmentSettings defaults to (any, false) when settings are missing.
+func flattenEspAssignmentSettings(settings *client.EscalationPolicyAssignmentSettings) (int, bool) {
+	if settings == nil || settings.AssigneeStrategy == 0 {
+		return client.AssigneeStrategyAny, false
+	}
+	return settings.AssigneeStrategy, settings.CallRRAssignee
 }
 
 func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*client.EscalationPolicy, diag.Diagnostics) {
@@ -122,6 +179,11 @@ func CreateEsp(Ctx context.Context, d *schema.ResourceData, m interface{}) (*cli
 	}
 	newEsp.MoveToNext = d.Get("move_to_next").(bool)
 	newEsp.GlobalEp = d.Get("global_ep").(bool)
+	assignmentSettings, err := expandEspAssignmentSettings(d)
+	if err != nil {
+		return nil, diag.FromErr(err)
+	}
+	newEsp.AssignmentSettings = assignmentSettings
 	newEsp.Rules = make([]client.Rules, len(rules))
 	oldDelay := 0
 	for i, rule := range rules {
@@ -302,6 +364,9 @@ func resourceReadEsp(Ctx context.Context, d *schema.ResourceData, m interface{})
 	d.Set("repeat_policy", esp.RepeatPolicy)
 	d.Set("move_to_next", esp.MoveToNext)
 	d.Set("global_ep", esp.GlobalEp)
+	strategy, notifyRRAssigneeOnly := flattenEspAssignmentSettings(esp.AssignmentSettings)
+	d.Set("assignee_strategy", strategy)
+	d.Set("notify_round_robin_assignee_only", notifyRRAssigneeOnly)
 	if err := d.Set("rules", flattenRules(esp.Rules)); err != nil {
 		return diag.FromErr(err)
 	}
