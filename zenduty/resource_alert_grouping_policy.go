@@ -13,9 +13,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// validStaticMatchFields mirrors the built-in options the dashboard offers
-// for content-based collation: incident title, incident summary, and the
-// alert's originating integration.
 var validStaticMatchFields = []string{"incident_title", "incident_summary", "integration"}
 
 func resourceAlertGroupingPolicy() *schema.Resource {
