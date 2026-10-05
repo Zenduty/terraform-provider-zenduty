@@ -13,12 +13,39 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
+// Service collation modes; 2 is unused.
+const (
+	collationOff          = 0
+	collationTimeBased    = 1
+	collationContentBased = 3
+)
+
+// Terraform cannot move a service between teams; a team_id change on an
+// existing service is an error pointing at state rm + import.
+func rejectServiceTeamChange(ctx context.Context, diff *schema.ResourceDiff, m interface{}) error {
+	if diff.Id() == "" || !diff.HasChange("team_id") {
+		return nil
+	}
+	oldTeam, newTeam := diff.GetChange("team_id")
+	newTeamText := fmt.Sprint(newTeam)
+	if !diff.NewValueKnown("team_id") {
+		newTeamText = "(known after apply)"
+	}
+	return fmt.Errorf(`team_id of service %[1]s differs from state (state: %[2]s, config: %[3]s) and cannot be changed: Terraform does not move services between teams.
+
+If the service was moved to team %[3]s, remove it from state and import it again under that team:
+  terraform state rm zenduty_services.<name>
+  terraform import zenduty_services.<name> %[3]s/%[1]s
+Do the same for its zenduty_integrations, zenduty_alertrules, zenduty_outgoing_rules and zenduty_alert_grouping_policy. Otherwise set team_id back to %[2]s.`, diff.Id(), oldTeam, newTeamText)
+}
+
 func resourceServices() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourceCreateServices,
 		UpdateContext: resourceUpdateServices,
 		DeleteContext: resourceDeleteServices,
 		ReadContext:   resourceReadServices,
+		CustomizeDiff: rejectServiceTeamChange,
 		Importer: &schema.ResourceImporter{
 			State: resourceServiceImporter,
 		},
@@ -48,10 +75,9 @@ func resourceServices() *schema.Resource {
 				Optional: true,
 			},
 			"collation": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				// backend SERVICE_COLLATION_TYPES: 0 off, 1 time-based, 3 content-based (2 is unused)
-				ValidateFunc: validation.IntInSlice([]int{0, 1, 3}),
+				Type:         schema.TypeInt,
+				Optional:     true,
+				ValidateFunc: validation.IntInSlice([]int{collationOff, collationTimeBased, collationContentBased}),
 			},
 			"collation_time": {
 				Type:         schema.TypeInt,
@@ -188,7 +214,7 @@ func resourceUpdateServices(Ctx context.Context, d *schema.ResourceData, m inter
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	return resourceReadServices(Ctx, d, m)
+	return readServices(Ctx, d, m, false)
 }
 
 func resourceDeleteServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -208,6 +234,12 @@ func resourceDeleteServices(Ctx context.Context, d *schema.ResourceData, m inter
 }
 
 func resourceReadServices(Ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return readServices(Ctx, d, m, true)
+}
+
+// checkPolicy warns on collation 3 without an active policy; off after an
+// update, when a policy in the same config is not created yet.
+func readServices(Ctx context.Context, d *schema.ResourceData, m interface{}, checkPolicy bool) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
 	teamID := d.Get("team_id").(string)
@@ -242,6 +274,9 @@ func resourceReadServices(Ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("under_maintenance", service.UnderMaintenance)
 	d.Set("creation_date", service.CreationDate)
 
+	if checkPolicy && service.Collation == collationContentBased {
+		diags = append(diags, warnIfNoActiveGroupingPolicy(apiclient, teamID, id)...)
+	}
 	return diags
 }
 

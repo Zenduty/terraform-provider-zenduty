@@ -40,12 +40,12 @@ resource "zenduty_services" "exampleservice" {
 ## Argument Reference
 
 * `name` (Required) - Name of the service (unique) 
-* `team_id` (Required, Forces new resource) - Unique id of the team where the service will be created
+* `team_id` (Required, Forces new resource) - Unique id of the team where the service will be created. Changing it on an existing service is rejected at plan time; see [Moving a Service to Another Team](#moving-a-service-to-another-team).
 * `escalation_policy` (Required) - Unique id of the escalation policy to be used by the service
 * `description` (Optional) - Description of the service 
 * `summary` (Optional) - Summary of the service
-*  `collation` (Optional)  - Alert collation mode: `0` (off), `1` (time-based) or `3` (content-based). Content-based collation is configured with an alert grouping policy.
-* `collation_time` (Optional) - The collation window in minutes, `1` to `1440`. Required when `collation` is not `0`, and must be `0` when collation is off.
+*  `collation` (Optional)  - Alert collation mode: `0` (off), `1` (time-based) or `3` (content-based). Content-based collation additionally requires a `zenduty_alert_grouping_policy` resource for the service; without an active one, refreshing the service emits a warning because its alerts are not grouped.
+* `collation_time` (Optional) - The collation window in minutes, `1` to `1440`. Required whenever `collation` is enabled (`1` or `3`), and must be left unset (`0`) when `collation` is `0`.
 * `sla` (Optional) - The SLA value for the service.
 * `task_template` (Optional) - The task template value for the service.
 * `team_priority` (Optional) - The team priority value for the service.
@@ -61,6 +61,17 @@ The following attributes are exported:
 * `status` - Current status of the service.
 * `under_maintenance` - Whether the service is currently under a maintenance window.
 * `creation_date` - When the service was created.
+
+## Moving a Service to Another Team
+
+Terraform does not move services between teams. If `team_id` on an existing service differs from state, the plan fails with an error that shows the two values and the import command below; Terraform never replaces the service on its own.
+
+If a service was moved to another team from the Zenduty console, the next refresh reads it under the old team, gets a 404 and removes it and its service-scoped resources (`zenduty_integrations`, `zenduty_alertrules`, `zenduty_outgoing_rules`, `zenduty_alert_grouping_policy`) from state. Do not apply at that point: Terraform would recreate a duplicate service in the old team. Instead:
+
+1. Update `team_id` on the service and on each service-scoped resource to the new team, and point `escalation_policy`, `sla`, `team_priority` and `task_template` at objects in the new team (the move replaced or cleared them).
+2. Remove the stale entries from state if the refresh has not already done so: `terraform state rm zenduty_services.<name>` and the same for its service-scoped resources.
+3. Import each resource under the new team, e.g. `terraform import zenduty_services.<name> <new_team_id>/<service_id>` and `terraform import zenduty_alert_grouping_policy.<name> <new_team_id>/<service_id>/<policy_id>`. The unique ids do not change on a move.
+4. Run `terraform plan`; it should be clean apart from settings the move changed.
 
 ## Import
 
