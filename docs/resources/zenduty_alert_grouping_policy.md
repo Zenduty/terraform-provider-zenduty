@@ -37,14 +37,25 @@ resource "zenduty_alert_grouping_policy" "example_policy" {
 ## Argument Reference
 
 * `team_id` (Required, Forces new resource) - The unique_id of the team the service belongs to.
-* `service_id` (Required, Forces new resource) - The unique_id of the service this policy applies to.
+* `service_id` (Required, Forces new resource) - The unique_id of the service this policy applies to. The service must have `collation = 3`.
 * `match_mode` (Optional)(Number) - `1` requires only one of the listed fields (`static_fields` and `custom_fields` combined) to match, `2` requires every listed field to match. Defaults to `2`.
 * `static_fields` (Optional)(List of String) - Built-in alert attributes to compare. One or more of `incident_title`, `incident_summary`, `integration`.
-* `custom_fields` (Optional)(List of String) - JSON keys from the integration's alert payload to compare (e.g. `host_id`).
+* `custom_fields` (Optional)(List of String) - JSONPath expressions evaluated against the integration's alert payload (e.g. `host_id`, `labels.host`).
 * `time_window` (Required)(Number) - Minutes to wait for matching alerts before closing correlation eligibility, `1` to `20`.
 * `is_active` (Optional)(bool) - Whether the policy is enforced. Defaults to `true`.
 
-At least one of `static_fields` or `custom_fields` must be set.
+At least one of `static_fields` or `custom_fields` must be set, and a field may be listed only once across both lists. Both rules are checked at plan time.
+
+## Checks Against the Service
+
+A policy only takes effect on a service whose `collation` is `3`, and a service can have at most one policy. The provider enforces this instead of letting a misconfiguration pass silently:
+
+* **Create and update fail** if the service's `collation` is not `3`. Set `collation = 3` and a `collation_time` on the `zenduty_services` resource. Because the policy references the service, Terraform updates the service first in the same apply.
+* **Create fails** if the service already has a policy, for example one created from the web console. The error names the existing policy and the `terraform import` command for it.
+* **Refresh warns** if the service has since left mode `3` while the policy still exists, so `terraform plan` shows that the policy is being ignored.
+* **Refresh of the service warns** when it is in mode `3` without an active policy, so alerts that are not being grouped show up in `terraform plan` on the `zenduty_services` resource.
+
+Switching noise reduction away from content-based in the web console deletes the policy; the resource then disappears from state on the next refresh and is recreated on the next apply.
 
 ## Attributes Reference
 
