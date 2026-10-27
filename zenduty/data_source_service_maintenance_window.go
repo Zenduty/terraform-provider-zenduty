@@ -66,6 +66,10 @@ func dataSourceServiceMaintenanceWindowsRead(ctx context.Context, d *schema.Reso
 		if zone == "" {
 			zone = "UTC"
 		}
+		repeatUntil := ""
+		if w.RepeatUntil != nil {
+			repeatUntil = *w.RepeatUntil
+		}
 		items[i] = map[string]interface{}{
 			"unique_id":       w.UniqueID,
 			"name":            w.Name,
@@ -73,7 +77,7 @@ func dataSourceServiceMaintenanceWindowsRead(ctx context.Context, d *schema.Reso
 			"end_time":        localOrRaw(w.EndTime, zone),
 			"timezone":        zone,
 			"repeat_interval": w.RepeatInterval,
-			"repeat_until":    localOrRaw(w.RepeatUntil, zone),
+			"repeat_until":    localOrRaw(repeatUntil, zone),
 			"creation_date":   w.CreationDate,
 		}
 	}

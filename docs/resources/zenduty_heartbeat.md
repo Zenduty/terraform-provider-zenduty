@@ -38,7 +38,7 @@ output "backup_ping_url" {
 * `interval_seconds` (Required)(Number) - Seconds without a ping before the heartbeat expires, `60` to `7776000` (90 days). The timer starts at creation, so a heartbeat that is never pinged fires once.
 * `is_enabled` (Optional)(bool) - Whether the heartbeat is monitored. Defaults to `true`. Re-enabling resets it to `pending` until the next ping.
 * `alert_message` (Optional) - Message of the incident raised when the heartbeat expires.
-* `alert_urgency` (Optional)(Number) - Urgency of the incident: `0` low, `1` high. Unset leaves the API default.
+* `alert_urgency` (Optional)(Number) - Urgency of the incident: `0` low, `1` high. Unset leaves the stored value alone (the API default for a new heartbeat), so a value set in the web console is not overwritten.
 * `ping_type` (Optional)(Number) - `0` for webhook pings to `ping_url` (default), `1` for email pings to `ping_email`.
 * `email_subject_contains` (Optional) - For email pings, only emails whose subject contains this text count as a ping.
 

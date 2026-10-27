@@ -43,7 +43,7 @@ resource "zenduty_assign_account_role" "demouser" {
 
 ## Import
 
-Assignments can be imported using the `username` of the user. The read fails for account admins and owners: the API only serves custom roles for members with the regular user role.
+Assignments can be imported using the `username` of the user. Only members with the regular user role can hold a custom role: if the user is later promoted to account admin or owner, the API refuses to serve the assignment and the resource leaves state with a warning on the next refresh. Remove it from the configuration (or demote the user) before the next apply.
 
 ```hcl
 resource "zenduty_assign_account_role" "demouser" {

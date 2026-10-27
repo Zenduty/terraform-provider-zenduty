@@ -37,11 +37,10 @@ resource "zenduty_incident_type" "outage" {
 * `is_default` (Optional)(bool) - Whether this is the account's default incident type. Setting it clears the flag on the previous default. Defaults to `false`.
 * `is_active` (Optional)(bool) - Whether the type can be picked for new incidents. Defaults to `true`. The API always creates a type active; with `false` the provider deactivates it right after creation.
 * `form_toggles` (Optional)(Map of bool) - Built-in incident form sections shown for this type, e.g. `impacted_services`, `responders`.
-* `custom_fields` (Optional) - Custom fields on the type's incident form, one block per field in display order:
+* `custom_fields` (Optional) - Custom fields on the type's incident form, one block per field. The block order is the display order.
     * `custom_field` (Required) - The unique_id of the `zenduty_incident_custom_field`.
-    * `position` (Optional)(Number) - Display position. Defaults to the block's position in the list.
     * `required` (Optional)(bool) - Whether the field must be filled. Defaults to `false`.
-    * `default_value` (Optional) - Default value as JSON: `jsonencode("eu-west")`, `jsonencode(3)` or `jsonencode(["a", "b"])` for a multiselect. Validated against the field's type.
+    * `default_value` (Optional) - Default value as JSON: `jsonencode("eu-west")`, `jsonencode(3)` or `jsonencode(["a", "b"])` for a multiselect. Validated against the field's type. Unset inherits the default from the field definition's `properties`, if it has one.
 
 ## Deletion
 

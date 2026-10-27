@@ -31,7 +31,7 @@ resource "zenduty_webhook_configuration" "ops_bus" {
 * `auth_secret_key` (Optional, Sensitive) - Secret used to sign deliveries.
 * `api_key` (Optional, Sensitive) - API key sent with deliveries.
 
-The API never returns `auth_secret_key` and `api_key` (reads return masked values), so the provider keeps the configured values in state and does not detect out-of-band changes to them. After an import they are absent from state; add them to the configuration and the next apply writes them.
+The API never returns `auth_secret_key` and `api_key` (reads return masked values), so the provider keeps the configured values in state and does not detect out-of-band changes to them. Every update sends the configured `filter`, `auth_secret_key` and `api_key`, so removing one from the configuration clears it on the next apply. After an import the secrets are absent from state and configuration: add them before the next apply that touches the webhook, or that apply clears them.
 
 ## Attributes Reference
 
