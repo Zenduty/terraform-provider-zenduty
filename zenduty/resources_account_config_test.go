@@ -3,6 +3,8 @@ package zenduty
 import (
 	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -184,8 +186,12 @@ func TestServiceMaintenanceWindowExpandConvertsToUTC(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if window.StartTime != "2027-01-15T09:00:00Z" || window.EndTime != "2027-01-15T11:00:00Z" || window.RepeatUntil != "2027-02-15T11:00:00Z" {
-		t.Errorf("got start=%s end=%s until=%s", window.StartTime, window.EndTime, window.RepeatUntil)
+	if window.StartTime != "2027-01-15T09:00:00Z" || window.EndTime != "2027-01-15T11:00:00Z" || window.RepeatUntil == nil || *window.RepeatUntil != "2027-02-15T11:00:00Z" {
+		t.Errorf("got start=%s end=%s until=%v", window.StartTime, window.EndTime, window.RepeatUntil)
+	}
+	d.Set("repeat_until", "")
+	if window, err = expandServiceMaintenanceWindow(d); err != nil || window.RepeatUntil != nil {
+		t.Errorf("an unset repeat_until must be sent as null, got %v, %v", window.RepeatUntil, err)
 	}
 	if window.RepeatInterval != 0 {
 		t.Errorf("repeat_interval must be sent explicitly as 0, got %d", window.RepeatInterval)
@@ -209,6 +215,13 @@ func TestTimeHelpersRoundTrip(t *testing.T) {
 	}
 	if local, err := apiTimeToLocal("", "UTC"); err != nil || local != "" {
 		t.Errorf("empty timestamp must stay empty, got %q, %v", local, err)
+	}
+	// 2027-03-28 02:30 does not exist in Berlin (clocks jump 02:00 -> 03:00)
+	if _, err := localTimeToAPI("2027-03-28 02:30", "Europe/Berlin"); err == nil || !strings.Contains(err.Error(), "daylight-saving gap") {
+		t.Errorf("a DST-gap time must be rejected, got %v", err)
+	}
+	if _, err := localTimeToAPI("2027-03-28 03:30", "Europe/Berlin"); err != nil {
+		t.Errorf("a time after the gap must pass, got %v", err)
 	}
 }
 
@@ -241,7 +254,7 @@ func TestIncidentTypeFlattenAndExpand(t *testing.T) {
 	}
 	first := blocks[0].(map[string]interface{})
 	second := blocks[1].(map[string]interface{})
-	if first["custom_field"] != testUUID || first["required"] != true || first["default_value"] != `"eu"` || first["position"] != 1 {
+	if first["custom_field"] != testUUID || first["required"] != true || first["default_value"] != `"eu"` {
 		t.Errorf("first = %v", first)
 	}
 	if second["custom_field"] != testUUID2 || second["required"] != false || second["default_value"] != `["a","b"]` {
@@ -253,12 +266,12 @@ func TestIncidentTypeFlattenAndExpand(t *testing.T) {
 	d.Set("form_toggles", map[string]interface{}{"responders": true})
 	d.Set("custom_fields", []interface{}{
 		map[string]interface{}{"custom_field": testUUID, "required": true, "default_value": `"eu"`},
-		map[string]interface{}{"custom_field": testUUID2, "position": 5},
+		map[string]interface{}{"custom_field": testUUID2},
 	})
 	input := expandIncidentTypeInput(d)
 	body, _ := json.Marshal(input)
 	s := string(body)
-	for _, want := range []string{`"form_toggles":[{"responders":true}]`, `"unique_id":"` + testUUID + `","default_value":"eu","required":true,"position":0`, `"unique_id":"` + testUUID2 + `","required":false,"position":5`} {
+	for _, want := range []string{`"form_toggles":[{"responders":true}]`, `"unique_id":"` + testUUID + `","default_value":"eu","required":true,"position":0`, `"unique_id":"` + testUUID2 + `","required":false,"position":1`} {
 		if !strings.Contains(s, want) {
 			t.Errorf("body %s lacks %s", s, want)
 		}
@@ -301,5 +314,34 @@ func TestWebhookConfigurationExpandUsesSet(t *testing.T) {
 	config := expandWebhookConfiguration(d)
 	if len(config.Event) != 2 || config.APIKey != "secret" {
 		t.Errorf("config = %+v", config)
+	}
+}
+
+// A 403 from the custom-role endpoint means the user can no longer hold a
+// custom role; the assignment must leave state with a warning, not fail plans.
+func TestAssignAccountRoleReadDropsForbiddenAssignment(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/api/account/users/"+testUsername+"/customroles/" {
+			w.WriteHeader(http.StatusForbidden)
+			w.Write([]byte(`{"detail": "Unauthorized"}`))
+			return
+		}
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	d := resourceAssignAccountRole().Data(nil)
+	d.SetId(testUsername)
+	d.Set("username", testUsername)
+	d.Set("account_role", testUUID)
+	diags := resourceReadRole(context.Background(), d, &Config{Token: "t", BaseURL: server.URL})
+	if diags.HasError() {
+		t.Fatalf("unexpected error: %v", diags)
+	}
+	if len(diags) != 1 || diags[0].Severity != 0+1 /* diag.Warning */ {
+		t.Fatalf("expected one warning, got %v", diags)
+	}
+	if d.Id() != "" {
+		t.Errorf("resource must leave state, id still %q", d.Id())
 	}
 }

@@ -248,6 +248,11 @@ func localTimeToAPI(value, zone string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("expected %q to be a time in the format YYYY-MM-DD HH:MM", value)
 	}
+	// a wall-clock time inside a daylight-saving gap is normalised forward by
+	// ParseInLocation and would never read back as written
+	if t.Format(localTimeLayout) != value {
+		return "", fmt.Errorf("%q does not exist in time zone %s (it falls in a daylight-saving gap); use a time outside the gap", value, zone)
+	}
 	return t.UTC().Format(time.RFC3339), nil
 }
 

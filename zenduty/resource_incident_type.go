@@ -48,7 +48,7 @@ func resourceIncidentType() *schema.Resource {
 			"custom_fields": {
 				Type:        schema.TypeList,
 				Optional:    true,
-				Description: "Custom fields on this type's incident form, in display order.",
+				Description: "Custom fields on this type's incident form. The block order is the display order.",
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"custom_field": {
@@ -56,12 +56,6 @@ func resourceIncidentType() *schema.Resource {
 							Required:         true,
 							ValidateDiagFunc: ValidateUUID(),
 							Description:      "unique_id of the zenduty_incident_custom_field.",
-						},
-						"position": {
-							Type:        schema.TypeInt,
-							Optional:    true,
-							Computed:    true,
-							Description: "Display position. Defaults to the block's position in the list.",
 						},
 						"required": {
 							Type:     schema.TypeBool,
@@ -71,9 +65,10 @@ func resourceIncidentType() *schema.Resource {
 						"default_value": {
 							Type:             schema.TypeString,
 							Optional:         true,
+							Computed:         true,
 							ValidateDiagFunc: ValidateJSONString(),
 							DiffSuppressFunc: suppressEquivalentJSONDiffs,
-							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\") or jsonencode([\"a\", \"b\"]) for a multiselect.",
+							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\") or jsonencode([\"a\", \"b\"]) for a multiselect. Unset inherits the field definition's own default.",
 						},
 					},
 				},
@@ -101,13 +96,12 @@ func expandIncidentTypeInput(d *schema.ResourceData) *client.IncidentTypeInput {
 	}
 	for index, raw := range d.Get("custom_fields").([]interface{}) {
 		block, _ := raw.(map[string]interface{})
+		// position is the block's place in the list, so the read (sorted by
+		// position) always comes back in config order
 		mapping := client.IncidentTypeFieldMapping{
 			UniqueID: block["custom_field"].(string),
 			Required: block["required"].(bool),
 			Position: index,
-		}
-		if position, _ := block["position"].(int); position != 0 {
-			mapping.Position = position
 		}
 		if value, _ := block["default_value"].(string); value != "" {
 			mapping.DefaultValue = json.RawMessage(value)
@@ -181,7 +175,6 @@ func flattenIncidentTypeCustomFields(incidentType *client.IncidentType, keyToID 
 	for _, e := range entries {
 		blocks = append(blocks, map[string]interface{}{
 			"custom_field":  e.UniqueID,
-			"position":      e.Position,
 			"required":      e.Required,
 			"default_value": e.DefaultValue,
 		})

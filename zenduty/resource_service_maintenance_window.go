@@ -99,9 +99,11 @@ func expandServiceMaintenanceWindow(d *schema.ResourceData) (*client.ServiceMain
 		RepeatInterval: d.Get("repeat_interval").(int),
 	}
 	if v := d.Get("repeat_until").(string); v != "" {
-		if window.RepeatUntil, err = localTimeToAPI(v, zone); err != nil {
+		until, err := localTimeToAPI(v, zone)
+		if err != nil {
 			return nil, fmt.Errorf("repeat_until: %w", err)
 		}
+		window.RepeatUntil = &until
 	}
 	return window, nil
 }
@@ -150,7 +152,11 @@ func resourceReadServiceMaintenanceWindow(ctx context.Context, d *schema.Resourc
 	if window.Service != "" {
 		d.Set("service_id", window.Service)
 	}
-	for key, value := range map[string]string{"start_time": window.StartTime, "end_time": window.EndTime, "repeat_until": window.RepeatUntil} {
+	repeatUntil := ""
+	if window.RepeatUntil != nil {
+		repeatUntil = *window.RepeatUntil
+	}
+	for key, value := range map[string]string{"start_time": window.StartTime, "end_time": window.EndTime, "repeat_until": repeatUntil} {
 		local, convErr := apiTimeToLocal(value, zone)
 		if convErr != nil {
 			return diag.FromErr(fmt.Errorf("%s: %w", key, convErr))
