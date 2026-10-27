@@ -40,3 +40,21 @@ resource "zenduty_assign_account_role" "demouser" {
 
 * `username` (Required) - Username of the User
 * `account_role`(Required) - UniqueID of the AccountRole
+
+## Import
+
+Assignments can be imported using the `username` of the user. The read fails for account admins and owners: the API only serves custom roles for members with the regular user role.
+
+```hcl
+resource "zenduty_assign_account_role" "demouser" {
+
+}
+```
+
+`$ terraform import zenduty_assign_account_role.demouser username`
+
+`$ terraform state show zenduty_assign_account_role.demouser`
+
+`* copy the output data and paste inside zenduty_assign_account_role.demouser resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import
