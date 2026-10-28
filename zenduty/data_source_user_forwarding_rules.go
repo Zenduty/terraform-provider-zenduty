@@ -11,7 +11,7 @@ func dataSourceUserForwardingRules() *schema.Resource {
 	str := func() *schema.Schema { return &schema.Schema{Type: schema.TypeString, Computed: true} }
 	return &schema.Resource{
 		ReadContext: dataSourceUserForwardingRulesRead,
-		Description: "Lists the forwarding rules involving a user: the rules forwarding their notifications and the rules forwarding other users' notifications to them. Compare username with the queried user to tell them apart.",
+		Description: "Forwarding rules involving a user, both forwarded by and forwarded to them.",
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:             schema.TypeString,

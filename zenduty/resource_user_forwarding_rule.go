@@ -21,7 +21,7 @@ func resourceUserForwardingRule() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceUserForwardingRuleImporter,
 		},
-		Description: "Forwards a user's notifications to another user for a period. The API has no update, so every attribute forces a new resource.",
+		Description: "Forwards a user's notifications to another user for a period; every attribute forces a new resource.",
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:             schema.TypeString,

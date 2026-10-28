@@ -25,7 +25,7 @@ func resourceIncidentType() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: ValidateNonZeroLength(),
-				Description:      "Name of the incident type, unique within the account. Deleting a type only deactivates it, so its name stays reserved.",
+				Description:      "Name of the incident type, unique within the account.",
 			},
 			"is_default": {
 				Type:        schema.TypeBool,
@@ -37,7 +37,7 @@ func resourceIncidentType() *schema.Resource {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Default:     true,
-				Description: "Whether the type can be picked for new incidents. A type is always created active; false deactivates it right after creation.",
+				Description: "Whether the type can be picked for new incidents.",
 			},
 			"form_toggles": {
 				Type:        schema.TypeMap,
@@ -68,7 +68,7 @@ func resourceIncidentType() *schema.Resource {
 							Computed:         true,
 							ValidateDiagFunc: ValidateJSONString(),
 							DiffSuppressFunc: suppressEquivalentJSONDiffs,
-							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\") or jsonencode([\"a\", \"b\"]) for a multiselect. Unset inherits the field definition's own default.",
+							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\"); unset inherits the field's own default.",
 						},
 					},
 				},
@@ -96,8 +96,7 @@ func expandIncidentTypeInput(d *schema.ResourceData) *client.IncidentTypeInput {
 	}
 	for index, raw := range d.Get("custom_fields").([]interface{}) {
 		block, _ := raw.(map[string]interface{})
-		// position is the block's place in the list, so the read (sorted by
-		// position) always comes back in config order
+		// position follows list order so the sorted read matches the config
 		mapping := client.IncidentTypeFieldMapping{
 			UniqueID: block["custom_field"].(string),
 			Required: block["required"].(bool),
@@ -111,9 +110,7 @@ func expandIncidentTypeInput(d *schema.ResourceData) *client.IncidentTypeInput {
 	return input
 }
 
-// incidentCustomFieldKeys maps every custom field's backend field_key to its
-// unique_id; the type's read shape is keyed by field_key, the write shape by
-// unique_id.
+// incidentCustomFieldKeys maps field_key to unique_id: reads use the former, writes the latter.
 func incidentCustomFieldKeys(apiclient *client.Client) (map[string]string, error) {
 	fields, err := apiclient.IncidentCustomField.GetIncidentCustomFields()
 	if err != nil {
@@ -126,8 +123,7 @@ func incidentCustomFieldKeys(apiclient *client.Client) (map[string]string, error
 	return keys, nil
 }
 
-// incidentTypeFieldEntry is one mapped custom field of an incident type in
-// a shape both the resource and the data source can flatten.
+// incidentTypeFieldEntry is a mapped custom field shared by the resource and data source.
 type incidentTypeFieldEntry struct {
 	FieldKey     string
 	UniqueID     string
@@ -136,8 +132,7 @@ type incidentTypeFieldEntry struct {
 	DefaultValue string
 }
 
-// incidentTypeFieldEntries rebuilds the mapped fields from the JSON Schema the
-// API returns, in position order. Fields whose definition is gone are left out.
+// incidentTypeFieldEntries returns the mapped fields in position order, skipping deleted definitions.
 func incidentTypeFieldEntries(incidentType *client.IncidentType, keyToID map[string]string) []incidentTypeFieldEntry {
 	required := make(map[string]bool, len(incidentType.CustomFields.Required))
 	for _, key := range incidentType.CustomFields.Required {
@@ -168,7 +163,6 @@ func incidentTypeFieldEntries(incidentType *client.IncidentType, keyToID map[str
 	return entries
 }
 
-// flattenIncidentTypeCustomFields builds the resource's custom_fields blocks.
 func flattenIncidentTypeCustomFields(incidentType *client.IncidentType, keyToID map[string]string) []interface{} {
 	entries := incidentTypeFieldEntries(incidentType, keyToID)
 	blocks := make([]interface{}, 0, len(entries))
@@ -182,9 +176,7 @@ func flattenIncidentTypeCustomFields(incidentType *client.IncidentType, keyToID 
 	return blocks
 }
 
-// flattenFormToggles turns the API's single-key objects back into a map of
-// booleans. A toggle decorated with widget config ({"enabled": true, ...})
-// counts as enabled.
+// flattenFormToggles reads a decorated toggle ({"enabled": true, ...}) as true.
 func flattenFormToggles(toggles []map[string]interface{}) map[string]interface{} {
 	out := make(map[string]interface{}, len(toggles))
 	for _, item := range toggles {
@@ -255,7 +247,7 @@ func resourceReadIncidentType(ctx context.Context, d *schema.ResourceData, m int
 	return nil
 }
 
-// Deleting an incident type soft-deletes it on the API (is_active = false).
+// Delete soft-deletes the type on the API.
 func resourceDeleteIncidentType(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	if err := apiclient.IncidentType.DeleteIncidentType(d.Id()); err != nil {

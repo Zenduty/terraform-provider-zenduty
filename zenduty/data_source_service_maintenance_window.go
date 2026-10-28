@@ -42,8 +42,7 @@ func dataSourceServiceMaintenanceWindows() *schema.Resource {
 	}
 }
 
-// localOrRaw shows an API timestamp as YYYY-MM-DD HH:MM in zone, falling
-// back to the raw value when it cannot be converted.
+// localOrRaw formats an API timestamp in zone, or returns it unchanged.
 func localOrRaw(value, zone string) string {
 	if local, err := apiTimeToLocal(value, zone); err == nil {
 		return local

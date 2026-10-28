@@ -12,7 +12,7 @@ func dataSourceWorkflows() *schema.Resource {
 	str := func() *schema.Schema { return &schema.Schema{Type: schema.TypeString, Computed: true} }
 	return &schema.Resource{
 		ReadContext: dataSourceWorkflowsRead,
-		Description: "Lists the account's workflows. Without workflow_id the list shape is returned: json_schema is empty and teams carry no service_ids.",
+		Description: "The account's workflows; without workflow_id the list shape omits json_schema and service_ids.",
 		Schema: map[string]*schema.Schema{
 			"workflow_id": {
 				Type:             schema.TypeString,

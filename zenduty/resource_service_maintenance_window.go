@@ -22,7 +22,7 @@ func resourceServiceMaintenanceWindow() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceServiceMaintenanceWindowImporter,
 		},
-		Description: "A maintenance window attached to one service. Use zenduty_maintenance_window for a team-level window that covers several services.",
+		Description: "A maintenance window on a single service.",
 		Schema: map[string]*schema.Schema{
 			"team_id": {
 				Type:             schema.TypeString,

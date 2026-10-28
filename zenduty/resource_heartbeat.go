@@ -25,7 +25,7 @@ func resourceHeartbeat() *schema.Resource {
 				Required:         true,
 				ForceNew:         true,
 				ValidateDiagFunc: ValidateUUID(),
-				Description:      "The service that is paged when the heartbeat expires. It must have an escalation policy. A heartbeat cannot move to another service.",
+				Description:      "The service paged when the heartbeat expires; it must have an escalation policy.",
 			},
 			"name": {
 				Type:             schema.TypeString,
@@ -96,8 +96,7 @@ func resourceHeartbeat() *schema.Resource {
 	}
 }
 
-// configuredInt returns the attribute's value when the configuration sets it
-// and nil otherwise, so nullable API fields can be left to the API's default.
+// configuredInt is the attribute's value when set in config, else nil.
 func configuredInt(d *schema.ResourceData, key string) *int {
 	raw := d.GetRawConfig()
 	if raw.IsNull() || !raw.IsKnown() {

@@ -8,8 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// accountSettingID is the fixed resource id: every account has exactly one
-// settings object.
+// accountSettingID is the fixed id of the singleton.
 const accountSettingID = "account"
 
 func resourceAccountSetting() *schema.Resource {
@@ -29,7 +28,7 @@ func resourceAccountSetting() *schema.Resource {
 		Importer: &schema.ResourceImporter{
 			State: resourceAccountSettingImporter,
 		},
-		Description: "The account's singleton settings. Creating the resource updates the existing settings; destroying it only removes it from state.",
+		Description: "The account's singleton settings; destroy only removes it from state.",
 		Schema: map[string]*schema.Schema{
 			"enable_delete_incident":        setting("Whether incidents can be deleted."),
 			"enable_team_manager_invite":    setting("Whether team managers can invite users."),
@@ -39,8 +38,7 @@ func resourceAccountSetting() *schema.Resource {
 	}
 }
 
-// configuredBool returns the attribute's value when the configuration sets it
-// and nil otherwise, so only the settings written in config are sent.
+// configuredBool is the attribute's value when set in config, else nil.
 func configuredBool(d *schema.ResourceData, key string) *bool {
 	raw := d.GetRawConfig()
 	if raw.IsNull() || !raw.IsKnown() {
@@ -86,7 +84,6 @@ func resourceReadAccountSetting(ctx context.Context, d *schema.ResourceData, m i
 	return nil
 }
 
-// The settings object cannot be deleted; destroying the resource forgets it.
 func resourceDeleteAccountSetting(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	d.SetId("")
 	return nil

@@ -22,7 +22,7 @@ const (
 
 type importerFunc func(*schema.ResourceData, interface{}) ([]*schema.ResourceData, error)
 
-// Every new importer must accept its documented id format and reject others.
+// Each importer accepts its documented id format and rejects others.
 func TestImportersParseDocumentedIDs(t *testing.T) {
 	cases := []struct {
 		name     string
@@ -81,7 +81,6 @@ func TestImportersParseDocumentedIDs(t *testing.T) {
 	}
 }
 
-// The account settings singleton accepts any id and normalises it.
 func TestAccountSettingImporterNormalisesID(t *testing.T) {
 	d := resourceAccountSetting().Data(nil)
 	d.SetId("whatever")
@@ -112,7 +111,6 @@ func expectPlanError(t *testing.T, err error, want string) {
 	}
 }
 
-// The descriptor rules the API enforces must fail at plan time.
 func TestIncidentCustomFieldPlanTimeValidation(t *testing.T) {
 	r := resourceIncidentCustomField()
 	cases := []struct {
@@ -305,7 +303,6 @@ func TestWorkflowExpandAndFlattenTeams(t *testing.T) {
 	}
 }
 
-// Webhook secrets are masked by the API, so the read must not overwrite them.
 func TestWebhookConfigurationExpandUsesSet(t *testing.T) {
 	d := resourceWebhookConfiguration().Data(nil)
 	d.Set("url", "https://example.com/hook")
@@ -317,8 +314,7 @@ func TestWebhookConfigurationExpandUsesSet(t *testing.T) {
 	}
 }
 
-// A 403 from the custom-role endpoint means the user can no longer hold a
-// custom role; the assignment must leave state with a warning, not fail plans.
+// A 403 (user became an admin) must drop the assignment with a warning, not fail plans.
 func TestAssignAccountRoleReadDropsForbiddenAssignment(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/api/account/users/"+testUsername+"/customroles/" {

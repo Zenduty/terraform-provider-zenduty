@@ -12,8 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-// incidentFieldSchemaTypes maps a field_type to the JSON Schema "type" its
-// property descriptor must carry, mirroring the backend's validate_field_schema.
+// incidentFieldSchemaTypes is the JSON Schema type each field_type requires.
 var incidentFieldSchemaTypes = map[int]string{
 	client.IncidentFieldTypeString:      "string",
 	client.IncidentFieldTypeInteger:     "integer",
@@ -52,7 +51,7 @@ func resourceIncidentCustomField() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: ValidateJSONObjectString(),
 				DiffSuppressFunc: suppressEquivalentJSONDiffs,
-				Description:      "JSON Schema property descriptor of the field, e.g. jsonencode({type = \"string\", title = \"Region\"}). title is required and unique within the account; select needs enum, multiselect needs items.enum.",
+				Description:      "JSON Schema property descriptor, e.g. jsonencode({type = \"string\", title = \"Region\"}).",
 			},
 			"field_key": {
 				Type:        schema.TypeString,
@@ -63,8 +62,7 @@ func resourceIncidentCustomField() *schema.Resource {
 	}
 }
 
-// validateIncidentCustomFieldProperties checks the parts of the descriptor
-// that the API rejects, so the error shows at plan time.
+// validateIncidentCustomFieldProperties mirrors the API's descriptor checks at plan time.
 func validateIncidentCustomFieldProperties(fieldType int, properties string) error {
 	var prop map[string]interface{}
 	if err := json.Unmarshal([]byte(properties), &prop); err != nil || prop == nil {

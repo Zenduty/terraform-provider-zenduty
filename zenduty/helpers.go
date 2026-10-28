@@ -222,12 +222,10 @@ func suppressEquivalentJSONObjectDiffs(k, old, new string, d *schema.ResourceDat
 	return suppressEquivalentJSONDiffs(k, old, new, d)
 }
 
-// localTimeLayout is how resources accept and show wall-clock times: a
-// "YYYY-MM-DD HH:MM" string interpreted in the resource's time zone.
+// localTimeLayout is the YYYY-MM-DD HH:MM wall-clock format resources use.
 const localTimeLayout = "2006-01-02 15:04"
 
-// parseAPITime parses the timestamps the API returns: ISO 8601 in UTC with a
-// "Z" suffix or an explicit offset, with or without fractional seconds.
+// parseAPITime parses the API's ISO 8601 timestamps.
 func parseAPITime(value string) (time.Time, error) {
 	for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05", "2006-01-02 15:04:05"} {
 		if t, err := time.Parse(layout, value); err == nil {
@@ -237,8 +235,7 @@ func parseAPITime(value string) (time.Time, error) {
 	return time.Time{}, fmt.Errorf("unrecognised timestamp %q", value)
 }
 
-// localTimeToAPI converts a localTimeLayout string in zone to the UTC
-// RFC 3339 form the API expects.
+// localTimeToAPI converts a local wall-clock time in zone to UTC RFC 3339.
 func localTimeToAPI(value, zone string) (string, error) {
 	loc, err := time.LoadLocation(zone)
 	if err != nil {
@@ -248,16 +245,14 @@ func localTimeToAPI(value, zone string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("expected %q to be a time in the format YYYY-MM-DD HH:MM", value)
 	}
-	// a wall-clock time inside a daylight-saving gap is normalised forward by
-	// ParseInLocation and would never read back as written
+	// a time inside a daylight-saving gap would never read back as written
 	if t.Format(localTimeLayout) != value {
 		return "", fmt.Errorf("%q does not exist in time zone %s (it falls in a daylight-saving gap); use a time outside the gap", value, zone)
 	}
 	return t.UTC().Format(time.RFC3339), nil
 }
 
-// apiTimeToLocal converts an API timestamp to localTimeLayout in zone. An
-// empty timestamp (a null on the API) stays empty.
+// apiTimeToLocal converts an API timestamp to localTimeLayout in zone.
 func apiTimeToLocal(value, zone string) (string, error) {
 	if value == "" {
 		return "", nil
@@ -346,7 +341,7 @@ func ValidateJSONObjectString() schema.SchemaValidateDiagFunc {
 	}
 }
 
-// expandStringSet turns a TypeSet of strings into a sorted-by-set-order slice.
+// expandStringSet converts a TypeSet of strings to a slice.
 func expandStringSet(v interface{}) []string {
 	set, ok := v.(*schema.Set)
 	if !ok || set == nil {
@@ -355,8 +350,7 @@ func expandStringSet(v interface{}) []string {
 	return expandStringList(set.List())
 }
 
-// setJSONAttribute stores raw JSON from the API in its normalised form so it
-// compares equal to any equivalent config value under suppressEquivalentJSONDiffs.
+// setJSONAttribute stores API JSON normalised so DiffSuppress compares equal.
 func setJSONAttribute(d *schema.ResourceData, key string, raw []byte) error {
 	if len(raw) == 0 || string(raw) == "null" {
 		return d.Set(key, "")

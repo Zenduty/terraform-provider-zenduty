@@ -42,7 +42,7 @@ func resourceMaintenanceTemplate() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: ValidateJSONObjectString(),
 				DiffSuppressFunc: suppressEquivalentJSONDiffs,
-				Description:      "Alert-matching rule in the same react-query-builder JSON format as zenduty_alertrules rule_json. Alerts matching the rule are suppressed while a maintenance window using this template is active.",
+				Description:      "Alert-matching rule in the zenduty_alertrules rule_json format.",
 			},
 		},
 	}

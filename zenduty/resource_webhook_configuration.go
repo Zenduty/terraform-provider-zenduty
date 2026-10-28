@@ -24,7 +24,7 @@ func resourceWebhookConfiguration() *schema.Resource {
 				Type:             schema.TypeString,
 				Required:         true,
 				ValidateDiagFunc: ValidateNonZeroLength(),
-				Description:      "HTTPS endpoint that receives the events. The API resolves it on write and rejects private or unresolvable hosts.",
+				Description:      "HTTPS endpoint that receives the events.",
 			},
 			"event": {
 				Type:     schema.TypeSet,
@@ -87,8 +87,7 @@ func resourceUpdateWebhookConfiguration(ctx context.Context, d *schema.ResourceD
 	return resourceReadWebhookConfiguration(ctx, d, m)
 }
 
-// The API masks auth_secret_key and api_key on read, so Read leaves the
-// configured secrets in state untouched and only refreshes the other fields.
+// Read leaves the configured secrets alone: the API masks them.
 func resourceReadWebhookConfiguration(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	config, err := apiclient.WebhookConfiguration.GetWebhookConfiguration(d.Id())

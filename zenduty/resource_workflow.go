@@ -47,7 +47,7 @@ func resourceWorkflow() *schema.Resource {
 				Required:         true,
 				ValidateDiagFunc: ValidateJSONObjectString(),
 				DiffSuppressFunc: suppressEquivalentJSONDiffs,
-				Description:      "The workflow graph as JSON: {nodes = [...], edges = [...]}, starting with exactly one trigger node, as the web console's workflow editor produces it.",
+				Description:      "The workflow graph as JSON ({nodes, edges}) with exactly one trigger node.",
 			},
 			"teams": {
 				Type:        schema.TypeSet,
@@ -73,8 +73,7 @@ func resourceWorkflow() *schema.Resource {
 	}
 }
 
-// validateWorkflowSchema checks the shape the API validates first: a JSON
-// object with a nodes list that contains exactly one trigger node.
+// validateWorkflowSchema requires a nodes list with exactly one trigger node.
 func validateWorkflowSchema(raw string) error {
 	var graph struct {
 		Nodes []struct {

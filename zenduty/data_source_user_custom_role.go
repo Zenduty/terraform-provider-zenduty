@@ -10,7 +10,7 @@ import (
 func dataSourceUserCustomRole() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceUserCustomRoleRead,
-		Description: "The custom account role assigned to a user, if any. The API only serves this for members with the regular user role.",
+		Description: "The custom account role assigned to a user, if any.",
 		Schema: map[string]*schema.Schema{
 			"username": {
 				Type:             schema.TypeString,

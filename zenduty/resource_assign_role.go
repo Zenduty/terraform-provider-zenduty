@@ -90,11 +90,8 @@ func resourceRemoveAssignedRole(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-// resourceReadRole refreshes the assignment from the API. A user without a
-// custom role no longer has an assignment, so the resource leaves state and
-// is planned for re-creation. The API answers 403 for account admins and
-// owners, who cannot hold a custom role: that assignment no longer applies
-// either, so it leaves state with a warning instead of failing every plan.
+// resourceReadRole drops the assignment from state when the user has no custom
+// role or can no longer hold one (the API answers 403 for admins and owners).
 func resourceReadRole(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
