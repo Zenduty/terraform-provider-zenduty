@@ -240,7 +240,7 @@ func TestIncidentTypeFlattenAndExpand(t *testing.T) {
 			Required: []string{"custom_field_7"},
 		},
 	}
-	keyToID := map[string]string{"custom_field_7": testUUID, "custom_field_9": testUUID2}
+	keyToID := map[string]incidentFieldRef{"custom_field_7": {UniqueID: testUUID}, "custom_field_9": {UniqueID: testUUID2}}
 
 	toggles := flattenFormToggles(incidentType.FormToggles)
 	if toggles["impacted_services"] != true || toggles["responders"] != false {
@@ -257,6 +257,15 @@ func TestIncidentTypeFlattenAndExpand(t *testing.T) {
 	}
 	if second["custom_field"] != testUUID2 || second["required"] != false || second["default_value"] != `["a","b"]` {
 		t.Errorf("second = %v", second)
+	}
+	// a default that merely equals the field definition's own default is not an override
+	inherited := map[string]incidentFieldRef{"custom_field_7": {UniqueID: testUUID, Default: `"eu"`}, "custom_field_9": {UniqueID: testUUID2}}
+	blocks = flattenIncidentTypeCustomFields(incidentType, inherited)
+	if blocks[0].(map[string]interface{})["default_value"] != "" {
+		t.Errorf("inherited default must read back as unset, got %v", blocks[0])
+	}
+	if entries := incidentTypeFieldEntries(incidentType, inherited); entries[0].EffectiveDefault != `"eu"` {
+		t.Errorf("effective default must still be reported, got %+v", entries[0])
 	}
 
 	d := resourceIncidentType().Data(nil)

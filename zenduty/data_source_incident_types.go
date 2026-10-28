@@ -65,7 +65,7 @@ func dataSourceIncidentTypesRead(ctx context.Context, d *schema.ResourceData, m 
 				"field_key":     e.FieldKey,
 				"position":      e.Position,
 				"required":      e.Required,
-				"default_value": e.DefaultValue,
+				"default_value": e.EffectiveDefault,
 			})
 		}
 		items[i] = map[string]interface{}{

@@ -40,7 +40,7 @@ resource "zenduty_incident_type" "outage" {
 * `custom_fields` (Optional) - Custom fields on the type's incident form, one block per field. The block order is the display order.
     * `custom_field` (Required) - The unique_id of the `zenduty_incident_custom_field`.
     * `required` (Optional)(bool) - Whether the field must be filled. Defaults to `false`.
-    * `default_value` (Optional) - Default value as JSON: `jsonencode("eu-west")`, `jsonencode(3)` or `jsonencode(["a", "b"])` for a multiselect. Validated against the field's type. Unset inherits the default from the field definition's `properties`, if it has one.
+    * `default_value` (Optional) - Default value as JSON: `jsonencode("eu-west")`, `jsonencode(3)` or `jsonencode(["a", "b"])` for a multiselect. Validated against the field's type. Leave it unset to inherit the default from the field definition's `properties`; setting it to that same value is read back as unset and shows a permanent diff, so only set it to override.
 
 ## Deletion
 

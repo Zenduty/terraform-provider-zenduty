@@ -65,10 +65,9 @@ func resourceIncidentType() *schema.Resource {
 						"default_value": {
 							Type:             schema.TypeString,
 							Optional:         true,
-							Computed:         true,
 							ValidateDiagFunc: ValidateJSONString(),
 							DiffSuppressFunc: suppressEquivalentJSONDiffs,
-							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\"); unset inherits the field's own default.",
+							Description:      "Default value as JSON, e.g. jsonencode(\"eu-west\"). Leave unset to inherit the field definition's own default; do not repeat that default here.",
 						},
 					},
 				},
@@ -110,47 +109,72 @@ func expandIncidentTypeInput(d *schema.ResourceData) *client.IncidentTypeInput {
 	return input
 }
 
-// incidentCustomFieldKeys maps field_key to unique_id: reads use the former, writes the latter.
-func incidentCustomFieldKeys(apiclient *client.Client) (map[string]string, error) {
+// incidentFieldRef is a custom field definition as the type's read shape
+// needs it: its unique_id (writes are keyed by it) and its own default.
+type incidentFieldRef struct {
+	UniqueID string
+	Default  string
+}
+
+// incidentCustomFieldKeys maps field_key to the field definition.
+func incidentCustomFieldKeys(apiclient *client.Client) (map[string]incidentFieldRef, error) {
 	fields, err := apiclient.IncidentCustomField.GetIncidentCustomFields()
 	if err != nil {
 		return nil, fmt.Errorf("listing incident custom fields: %w", err)
 	}
-	keys := make(map[string]string, len(fields))
+	keys := make(map[string]incidentFieldRef, len(fields))
 	for _, field := range fields {
-		keys[field.FieldKey] = field.UniqueID
+		var prop struct {
+			Default json.RawMessage `json:"default"`
+		}
+		_ = json.Unmarshal(field.Properties, &prop)
+		keys[field.FieldKey] = incidentFieldRef{UniqueID: field.UniqueID, Default: normalizeRawJSON(prop.Default)}
 	}
 	return keys, nil
 }
 
-// incidentTypeFieldEntry is a mapped custom field shared by the resource and data source.
+// normalizeRawJSON returns compact JSON, or "" for empty or null.
+func normalizeRawJSON(raw json.RawMessage) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+	if normalized, err := normalizeJSON(string(raw)); err == nil {
+		return normalized
+	}
+	return string(raw)
+}
+
+// incidentTypeFieldEntry is a mapped custom field shared by the resource and
+// data source. DefaultValue is the mapping's own override ("" when the
+// effective default is just the field definition's); EffectiveDefault is what
+// the form shows.
 type incidentTypeFieldEntry struct {
-	FieldKey     string
-	UniqueID     string
-	Position     int
-	Required     bool
-	DefaultValue string
+	FieldKey         string
+	UniqueID         string
+	Position         int
+	Required         bool
+	DefaultValue     string
+	EffectiveDefault string
 }
 
 // incidentTypeFieldEntries returns the mapped fields in position order, skipping deleted definitions.
-func incidentTypeFieldEntries(incidentType *client.IncidentType, keyToID map[string]string) []incidentTypeFieldEntry {
+func incidentTypeFieldEntries(incidentType *client.IncidentType, fields map[string]incidentFieldRef) []incidentTypeFieldEntry {
 	required := make(map[string]bool, len(incidentType.CustomFields.Required))
 	for _, key := range incidentType.CustomFields.Required {
 		required[key] = true
 	}
 	entries := make([]incidentTypeFieldEntry, 0, len(incidentType.CustomFields.Properties))
 	for key, field := range incidentType.CustomFields.Properties {
-		uniqueID, known := keyToID[key]
+		ref, known := fields[key]
 		if !known {
 			continue
 		}
-		entry := incidentTypeFieldEntry{FieldKey: key, UniqueID: uniqueID, Position: field.Position, Required: required[key]}
-		if len(field.Default) > 0 && string(field.Default) != "null" {
-			if normalized, err := normalizeJSON(string(field.Default)); err == nil {
-				entry.DefaultValue = normalized
-			} else {
-				entry.DefaultValue = string(field.Default)
-			}
+		entry := incidentTypeFieldEntry{FieldKey: key, UniqueID: ref.UniqueID, Position: field.Position, Required: required[key]}
+		entry.EffectiveDefault = normalizeRawJSON(field.Default)
+		// the API merges the field's own default into the read shape; only a
+		// value that differs from it is a mapping-level override
+		if entry.EffectiveDefault != ref.Default {
+			entry.DefaultValue = entry.EffectiveDefault
 		}
 		entries = append(entries, entry)
 	}
@@ -163,8 +187,8 @@ func incidentTypeFieldEntries(incidentType *client.IncidentType, keyToID map[str
 	return entries
 }
 
-func flattenIncidentTypeCustomFields(incidentType *client.IncidentType, keyToID map[string]string) []interface{} {
-	entries := incidentTypeFieldEntries(incidentType, keyToID)
+func flattenIncidentTypeCustomFields(incidentType *client.IncidentType, fields map[string]incidentFieldRef) []interface{} {
+	entries := incidentTypeFieldEntries(incidentType, fields)
 	blocks := make([]interface{}, 0, len(entries))
 	for _, e := range entries {
 		blocks = append(blocks, map[string]interface{}{
