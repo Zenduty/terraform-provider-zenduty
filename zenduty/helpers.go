@@ -279,7 +279,7 @@ func ValidateLocalTime() schema.SchemaValidateDiagFunc {
 			return diag.Diagnostics{{
 				Severity: diag.Error,
 				Summary:  "Invalid time",
-				Detail:   fmt.Sprintf("expected %s to be a time in the format YYYY-MM-DD HH:MM, got %q", path, s),
+				Detail:   fmt.Sprintf("expected a time in the format YYYY-MM-DD HH:MM, got %q", s),
 			}}
 		}
 		return nil
@@ -297,7 +297,7 @@ func ValidateTimeZone() schema.SchemaValidateDiagFunc {
 			return diag.Diagnostics{{
 				Severity: diag.Error,
 				Summary:  "Invalid time zone",
-				Detail:   fmt.Sprintf("expected %s to be an IANA time zone name such as UTC or Europe/Berlin, got %q", path, s),
+				Detail:   fmt.Sprintf("expected an IANA time zone name such as UTC or Europe/Berlin, got %q", s),
 			}}
 		}
 		return nil
@@ -315,7 +315,7 @@ func ValidateJSONString() schema.SchemaValidateDiagFunc {
 			return diag.Diagnostics{{
 				Severity: diag.Error,
 				Summary:  "Invalid JSON",
-				Detail:   fmt.Sprintf("expected %s to be valid JSON; use jsonencode()", path),
+				Detail:   "expected valid JSON; use jsonencode()",
 			}}
 		}
 		return nil
@@ -334,7 +334,7 @@ func ValidateJSONObjectString() schema.SchemaValidateDiagFunc {
 			return diag.Diagnostics{{
 				Severity: diag.Error,
 				Summary:  "Invalid JSON object",
-				Detail:   fmt.Sprintf("expected %s to be a JSON object; use jsonencode({...})", path),
+				Detail:   "expected a JSON object; use jsonencode({...})",
 			}}
 		}
 		return nil
