@@ -79,7 +79,6 @@ func validateWorkflowSchema(raw string) error {
 		Nodes []struct {
 			Type string `json:"type"`
 		} `json:"nodes"`
-		Edges []interface{} `json:"edges"`
 	}
 	if err := json.Unmarshal([]byte(raw), &graph); err != nil {
 		return errors.New("json_schema must be a JSON object with nodes and edges lists")
@@ -168,10 +167,8 @@ func resourceReadWorkflow(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("description", workflow.Description)
 	d.Set("is_draft", workflow.IsDraft)
 	d.Set("is_enabled", workflow.IsEnabled)
-	if normalized, normErr := normalizeJSON(workflow.JSONSchema); normErr == nil {
-		d.Set("json_schema", normalized)
-	} else {
-		d.Set("json_schema", workflow.JSONSchema)
+	if err := setJSONAttribute(d, "json_schema", []byte(workflow.JSONSchema)); err != nil {
+		return diag.FromErr(err)
 	}
 	if err := d.Set("teams", flattenWorkflowTeams(workflow.Teams)); err != nil {
 		return diag.FromErr(err)

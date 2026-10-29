@@ -57,13 +57,13 @@ func resourceCreateServiceContext(ctx context.Context, d *schema.ResourceData, m
 
 func resourceReadServiceContext(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	context, err := apiclient.ServiceContext.GetServiceContext(d.Get("team_id").(string), d.Get("service_id").(string), d.Id())
+	link, err := apiclient.ServiceContext.GetServiceContext(d.Get("team_id").(string), d.Get("service_id").(string), d.Id())
 	if err != nil {
 		return handleReadError(d, err)
 	}
-	d.Set("integration", context.Integration)
-	if context.Service != "" {
-		d.Set("service_id", context.Service)
+	d.Set("integration", link.Integration)
+	if link.Service != "" {
+		d.Set("service_id", link.Service)
 	}
 	return nil
 }

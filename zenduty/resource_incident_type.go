@@ -109,8 +109,7 @@ func expandIncidentTypeInput(d *schema.ResourceData) *client.IncidentTypeInput {
 	return input
 }
 
-// incidentFieldRef is a custom field definition as the type's read shape
-// needs it: its unique_id (writes are keyed by it) and its own default.
+// incidentFieldRef is a field definition's unique_id and own default.
 type incidentFieldRef struct {
 	UniqueID string
 	Default  string
@@ -133,21 +132,8 @@ func incidentCustomFieldKeys(apiclient *client.Client) (map[string]incidentField
 	return keys, nil
 }
 
-// normalizeRawJSON returns compact JSON, or "" for empty or null.
-func normalizeRawJSON(raw json.RawMessage) string {
-	if len(raw) == 0 || string(raw) == "null" {
-		return ""
-	}
-	if normalized, err := normalizeJSON(string(raw)); err == nil {
-		return normalized
-	}
-	return string(raw)
-}
-
-// incidentTypeFieldEntry is a mapped custom field shared by the resource and
-// data source. DefaultValue is the mapping's own override ("" when the
-// effective default is just the field definition's); EffectiveDefault is what
-// the form shows.
+// incidentTypeFieldEntry is a mapped custom field; DefaultValue is the mapping's
+// own override ("" when it only inherits the definition's), EffectiveDefault what the form shows.
 type incidentTypeFieldEntry struct {
 	FieldKey         string
 	UniqueID         string
@@ -221,7 +207,8 @@ func flattenFormToggles(toggles []map[string]interface{}) map[string]interface{}
 
 func resourceCreateIncidentType(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
-	created, err := apiclient.IncidentType.CreateIncidentType(expandIncidentTypeInput(d))
+	input := expandIncidentTypeInput(d)
+	created, err := apiclient.IncidentType.CreateIncidentType(input)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -229,7 +216,6 @@ func resourceCreateIncidentType(ctx context.Context, d *schema.ResourceData, m i
 	// new types are always active on the API; deactivate afterwards if asked
 	if !d.Get("is_active").(bool) {
 		inactive := false
-		input := expandIncidentTypeInput(d)
 		input.IsActive = &inactive
 		if _, err := apiclient.IncidentType.UpdateIncidentType(created.UniqueID, input); err != nil {
 			return diag.FromErr(err)

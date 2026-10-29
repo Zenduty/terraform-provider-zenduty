@@ -96,12 +96,8 @@ func resourceReadWebhookConfiguration(ctx context.Context, d *schema.ResourceDat
 	}
 	d.Set("url", config.URL)
 	d.Set("event", config.Event)
-	if config.Filter == "" {
-		d.Set("filter", "")
-	} else if normalized, normErr := normalizeJSON(config.Filter); normErr == nil {
-		d.Set("filter", normalized)
-	} else {
-		d.Set("filter", config.Filter)
+	if err := setJSONAttribute(d, "filter", []byte(config.Filter)); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }

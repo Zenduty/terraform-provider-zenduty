@@ -66,17 +66,13 @@ func flattenWorkflowForDataSource(w *client.Workflow) map[string]interface{} {
 			"service_ids": services,
 		})
 	}
-	schemaJSON := w.JSONSchema
-	if normalized, err := normalizeJSON(schemaJSON); err == nil {
-		schemaJSON = normalized
-	}
 	return map[string]interface{}{
 		"unique_id":   w.UniqueID,
 		"name":        w.Name,
 		"description": w.Description,
 		"is_draft":    w.IsDraft,
 		"is_enabled":  w.IsEnabled,
-		"json_schema": schemaJSON,
+		"json_schema": normalizeRawJSON([]byte(w.JSONSchema)),
 		"teams":       teams,
 	}
 }

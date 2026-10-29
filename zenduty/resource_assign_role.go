@@ -3,7 +3,6 @@ package zenduty
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
@@ -90,8 +89,7 @@ func resourceRemoveAssignedRole(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-// resourceReadRole drops the assignment from state when the user has no custom
-// role or can no longer hold one (the API answers 403 for admins and owners).
+// resourceReadRole drops the assignment from state when the user has no custom role; the API answers 403 for admins and owners.
 func resourceReadRole(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 
@@ -101,13 +99,11 @@ func resourceReadRole(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 	userRole, err := apiclient.AccountRole.GetUserRole(username)
 	if client.StatusCode(err) == http.StatusForbidden {
-		log.Printf("[WARN] Removing zenduty_assign_account_role for %s from state: the API refused to serve the user's custom role (403)", username)
 		d.SetId("")
 		return diag.Diagnostics{{
 			Severity: diag.Warning,
 			Summary:  "Custom role assignment no longer applies",
-			Detail: fmt.Sprintf("The API refuses to serve the custom role of user %s (HTTP 403). Only members with the regular user role can hold one, so the user was most likely promoted to account admin or owner (or the token lacks admin rights). The assignment was removed from state; remove the resource from the configuration or demote the user before the next apply.",
-				username),
+			Detail:   fmt.Sprintf("The API refused to serve the custom role of user %s (HTTP 403); only regular members can hold one, so the user was most likely made an admin or owner. The assignment was removed from state.", username),
 		}}
 	}
 	if err != nil {

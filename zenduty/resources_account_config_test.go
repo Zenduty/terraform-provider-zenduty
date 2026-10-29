@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
@@ -343,7 +344,7 @@ func TestAssignAccountRoleReadDropsForbiddenAssignment(t *testing.T) {
 	if diags.HasError() {
 		t.Fatalf("unexpected error: %v", diags)
 	}
-	if len(diags) != 1 || diags[0].Severity != 0+1 /* diag.Warning */ {
+	if len(diags) != 1 || diags[0].Severity != diag.Warning {
 		t.Fatalf("expected one warning, got %v", diags)
 	}
 	if d.Id() != "" {

@@ -36,16 +36,12 @@ func dataSourceIncidentCustomFieldsRead(ctx context.Context, d *schema.ResourceD
 	}
 	items := make([]map[string]interface{}, len(fields))
 	for i, f := range fields {
-		properties := string(f.Properties)
-		if normalized, normErr := normalizeJSON(properties); normErr == nil {
-			properties = normalized
-		}
 		items[i] = map[string]interface{}{
 			"unique_id":  f.UniqueID,
 			"field_key":  f.FieldKey,
 			"field_type": f.FieldType,
 			"title":      jsonStringField(f.Properties, "title"),
-			"properties": properties,
+			"properties": normalizeRawJSON(f.Properties),
 		}
 	}
 	if err := d.Set("custom_fields", items); err != nil {

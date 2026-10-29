@@ -82,10 +82,8 @@ func resourceReadMaintenanceTemplate(ctx context.Context, d *schema.ResourceData
 	}
 	d.Set("name", template.Name)
 	d.Set("is_enabled", template.IsEnabled)
-	if normalized, normErr := normalizeJSON(template.RuleJSON); normErr == nil {
-		d.Set("rule_json", normalized)
-	} else {
-		d.Set("rule_json", template.RuleJSON)
+	if err := setJSONAttribute(d, "rule_json", []byte(template.RuleJSON)); err != nil {
+		return diag.FromErr(err)
 	}
 	return nil
 }

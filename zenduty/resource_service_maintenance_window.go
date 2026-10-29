@@ -2,10 +2,8 @@ package zenduty
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -78,18 +76,9 @@ func resourceServiceMaintenanceWindow() *schema.Resource {
 
 func expandServiceMaintenanceWindow(d *schema.ResourceData) (*client.ServiceMaintenanceWindow, error) {
 	zone := d.Get("timezone").(string)
-	start, err := localTimeToAPI(d.Get("start_time").(string), zone)
+	start, end, err := localPeriodToAPI("start_time", d.Get("start_time").(string), "end_time", d.Get("end_time").(string), zone)
 	if err != nil {
-		return nil, fmt.Errorf("start_time: %w", err)
-	}
-	end, err := localTimeToAPI(d.Get("end_time").(string), zone)
-	if err != nil {
-		return nil, fmt.Errorf("end_time: %w", err)
-	}
-	startAt, _ := time.Parse(time.RFC3339, start)
-	endAt, _ := time.Parse(time.RFC3339, end)
-	if !endAt.After(startAt) {
-		return nil, errors.New("end_time must be after start_time")
+		return nil, err
 	}
 	window := &client.ServiceMaintenanceWindow{
 		Name:           d.Get("name").(string),

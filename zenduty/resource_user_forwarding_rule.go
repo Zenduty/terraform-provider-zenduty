@@ -2,10 +2,8 @@ package zenduty
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -64,18 +62,9 @@ func resourceUserForwardingRule() *schema.Resource {
 
 func expandUserForwardingRule(d *schema.ResourceData) (*client.ForwardingRule, error) {
 	zone := d.Get("time_zone").(string)
-	from, err := localTimeToAPI(d.Get("from_date").(string), zone)
+	from, to, err := localPeriodToAPI("from_date", d.Get("from_date").(string), "to_date", d.Get("to_date").(string), zone)
 	if err != nil {
-		return nil, fmt.Errorf("from_date: %w", err)
-	}
-	to, err := localTimeToAPI(d.Get("to_date").(string), zone)
-	if err != nil {
-		return nil, fmt.Errorf("to_date: %w", err)
-	}
-	fromAt, _ := time.Parse(time.RFC3339, from)
-	toAt, _ := time.Parse(time.RFC3339, to)
-	if !toAt.After(fromAt) {
-		return nil, errors.New("to_date must be after from_date")
+		return nil, err
 	}
 	return &client.ForwardingRule{
 		ToUser:   d.Get("to_user").(string),
@@ -91,21 +80,8 @@ func validateUserForwardingRuleDiff(ctx context.Context, diff *schema.ResourceDi
 			return nil
 		}
 	}
-	zone := diff.Get("time_zone").(string)
-	from, err := localTimeToAPI(diff.Get("from_date").(string), zone)
-	if err != nil {
-		return fmt.Errorf("from_date: %w", err)
-	}
-	to, err := localTimeToAPI(diff.Get("to_date").(string), zone)
-	if err != nil {
-		return fmt.Errorf("to_date: %w", err)
-	}
-	fromAt, _ := time.Parse(time.RFC3339, from)
-	toAt, _ := time.Parse(time.RFC3339, to)
-	if !toAt.After(fromAt) {
-		return errors.New("to_date must be after from_date")
-	}
-	return nil
+	_, _, err := localPeriodToAPI("from_date", diff.Get("from_date").(string), "to_date", diff.Get("to_date").(string), diff.Get("time_zone").(string))
+	return err
 }
 
 func resourceCreateUserForwardingRule(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

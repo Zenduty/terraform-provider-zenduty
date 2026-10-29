@@ -227,7 +227,7 @@ const localTimeLayout = "2006-01-02 15:04"
 
 // parseAPITime parses the API's ISO 8601 timestamps.
 func parseAPITime(value string) (time.Time, error) {
-	for _, layout := range []string{time.RFC3339Nano, time.RFC3339, "2006-01-02T15:04:05", "2006-01-02 15:04:05"} {
+	for _, layout := range []string{time.RFC3339Nano, "2006-01-02T15:04:05", "2006-01-02 15:04:05"} {
 		if t, err := time.Parse(layout, value); err == nil {
 			return t, nil
 		}
@@ -266,6 +266,22 @@ func apiTimeToLocal(value, zone string) (string, error) {
 		return "", err
 	}
 	return t.In(loc).Format(localTimeLayout), nil
+}
+
+// localPeriodToAPI converts a start and end in zone to UTC and requires end to be after start.
+func localPeriodToAPI(startKey, start, endKey, end, zone string) (string, string, error) {
+	from, err := localTimeToAPI(start, zone)
+	if err != nil {
+		return "", "", fmt.Errorf("%s: %w", startKey, err)
+	}
+	to, err := localTimeToAPI(end, zone)
+	if err != nil {
+		return "", "", fmt.Errorf("%s: %w", endKey, err)
+	}
+	if to <= from {
+		return "", "", fmt.Errorf("%s must be after %s", endKey, startKey)
+	}
+	return from, to, nil
 }
 
 // ValidateLocalTime checks the YYYY-MM-DD HH:MM format at plan time.
@@ -352,14 +368,44 @@ func expandStringSet(v interface{}) []string {
 
 // setJSONAttribute stores API JSON normalised so DiffSuppress compares equal.
 func setJSONAttribute(d *schema.ResourceData, key string, raw []byte) error {
+	return d.Set(key, normalizeRawJSON(raw))
+}
+
+// normalizeRawJSON returns compact JSON, or "" for empty or null.
+func normalizeRawJSON(raw []byte) string {
 	if len(raw) == 0 || string(raw) == "null" {
-		return d.Set(key, "")
+		return ""
 	}
-	normalized, err := normalizeJSON(string(raw))
-	if err != nil {
-		return d.Set(key, string(raw))
+	if normalized, err := normalizeJSON(string(raw)); err == nil {
+		return normalized
 	}
-	return d.Set(key, normalized)
+	return string(raw)
+}
+
+// isSetInConfig reports whether the attribute is present in the configuration.
+func isSetInConfig(d *schema.ResourceData, key string) bool {
+	raw := d.GetRawConfig()
+	if raw.IsNull() || !raw.IsKnown() {
+		return false
+	}
+	attr := raw.GetAttr(key)
+	return !attr.IsNull() && attr.IsKnown()
+}
+
+func configuredBool(d *schema.ResourceData, key string) *bool {
+	if !isSetInConfig(d, key) {
+		return nil
+	}
+	v := d.Get(key).(bool)
+	return &v
+}
+
+func configuredInt(d *schema.ResourceData, key string) *int {
+	if !isSetInConfig(d, key) {
+		return nil
+	}
+	v := d.Get(key).(int)
+	return &v
 }
 
 // jsonStringField returns the string value of key in a JSON object, or "".

@@ -38,20 +38,6 @@ func resourceAccountSetting() *schema.Resource {
 	}
 }
 
-// configuredBool is the attribute's value when set in config, else nil.
-func configuredBool(d *schema.ResourceData, key string) *bool {
-	raw := d.GetRawConfig()
-	if raw.IsNull() || !raw.IsKnown() {
-		return nil
-	}
-	attr := raw.GetAttr(key)
-	if attr.IsNull() || !attr.IsKnown() {
-		return nil
-	}
-	v := d.Get(key).(bool)
-	return &v
-}
-
 func resourceUpsertAccountSetting(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	apiclient, _ := m.(*Config).Client()
 	setting := &client.AccountSetting{

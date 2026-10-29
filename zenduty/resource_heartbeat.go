@@ -96,20 +96,6 @@ func resourceHeartbeat() *schema.Resource {
 	}
 }
 
-// configuredInt is the attribute's value when set in config, else nil.
-func configuredInt(d *schema.ResourceData, key string) *int {
-	raw := d.GetRawConfig()
-	if raw.IsNull() || !raw.IsKnown() {
-		return nil
-	}
-	attr := raw.GetAttr(key)
-	if attr.IsNull() || !attr.IsKnown() {
-		return nil
-	}
-	v := d.Get(key).(int)
-	return &v
-}
-
 func expandHeartbeat(d *schema.ResourceData) *client.Heartbeat {
 	return &client.Heartbeat{
 		Service:              d.Get("service_id").(string),
