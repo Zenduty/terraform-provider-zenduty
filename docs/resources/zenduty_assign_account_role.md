@@ -40,3 +40,21 @@ resource "zenduty_assign_account_role" "demouser" {
 
 * `username` (Required) - Username of the User
 * `account_role`(Required) - UniqueID of the AccountRole
+
+## Import
+
+Assignments can be imported using the `username` of the user. Only members with the regular user role can hold a custom role: if the user is later promoted to account admin or owner, the API refuses to serve the assignment and the resource leaves state with a warning on the next refresh. Remove it from the configuration (or demote the user) before the next apply.
+
+```hcl
+resource "zenduty_assign_account_role" "demouser" {
+
+}
+```
+
+`$ terraform import zenduty_assign_account_role.demouser username`
+
+`$ terraform state show zenduty_assign_account_role.demouser`
+
+`* copy the output data and paste inside zenduty_assign_account_role.demouser resource block and remove the id attribute`
+
+`$ terraform plan` to verify the import

@@ -7,6 +7,7 @@ import (
 	"net/mail"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Zenduty/zenduty-go-sdk/client"
 	"github.com/google/uuid"
@@ -219,4 +220,200 @@ func suppressEquivalentJSONObjectDiffs(k, old, new string, d *schema.ResourceDat
 		new = "{}"
 	}
 	return suppressEquivalentJSONDiffs(k, old, new, d)
+}
+
+// localTimeLayout is the YYYY-MM-DD HH:MM wall-clock format resources use.
+const localTimeLayout = "2006-01-02 15:04"
+
+// parseAPITime parses the API's ISO 8601 timestamps.
+func parseAPITime(value string) (time.Time, error) {
+	for _, layout := range []string{time.RFC3339Nano, "2006-01-02T15:04:05", "2006-01-02 15:04:05"} {
+		if t, err := time.Parse(layout, value); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unrecognised timestamp %q", value)
+}
+
+// localTimeToAPI converts a local wall-clock time in zone to UTC RFC 3339.
+func localTimeToAPI(value, zone string) (string, error) {
+	loc, err := time.LoadLocation(zone)
+	if err != nil {
+		return "", fmt.Errorf("invalid time zone %q: %w", zone, err)
+	}
+	t, err := time.ParseInLocation(localTimeLayout, value, loc)
+	if err != nil {
+		return "", fmt.Errorf("expected %q to be a time in the format YYYY-MM-DD HH:MM", value)
+	}
+	// a time inside a daylight-saving gap would never read back as written
+	if t.Format(localTimeLayout) != value {
+		return "", fmt.Errorf("%q does not exist in time zone %s (it falls in a daylight-saving gap); use a time outside the gap", value, zone)
+	}
+	return t.UTC().Format(time.RFC3339), nil
+}
+
+// apiTimeToLocal converts an API timestamp to localTimeLayout in zone.
+func apiTimeToLocal(value, zone string) (string, error) {
+	if value == "" {
+		return "", nil
+	}
+	loc, err := time.LoadLocation(zone)
+	if err != nil {
+		return "", fmt.Errorf("invalid time zone %q: %w", zone, err)
+	}
+	t, err := parseAPITime(value)
+	if err != nil {
+		return "", err
+	}
+	return t.In(loc).Format(localTimeLayout), nil
+}
+
+// localPeriodToAPI converts a start and end in zone to UTC and requires end to be after start.
+func localPeriodToAPI(startKey, start, endKey, end, zone string) (string, string, error) {
+	from, err := localTimeToAPI(start, zone)
+	if err != nil {
+		return "", "", fmt.Errorf("%s: %w", startKey, err)
+	}
+	to, err := localTimeToAPI(end, zone)
+	if err != nil {
+		return "", "", fmt.Errorf("%s: %w", endKey, err)
+	}
+	if to <= from {
+		return "", "", fmt.Errorf("%s must be after %s", endKey, startKey)
+	}
+	return from, to, nil
+}
+
+// ValidateLocalTime checks the YYYY-MM-DD HH:MM format at plan time.
+func ValidateLocalTime() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		s, ok := v.(string)
+		if !ok {
+			return diag.Diagnostics{{Severity: diag.Error, Summary: "Invalid", Detail: "expected type of string"}}
+		}
+		if _, err := time.Parse(localTimeLayout, s); err != nil {
+			return diag.Diagnostics{{
+				Severity: diag.Error,
+				Summary:  "Invalid time",
+				Detail:   fmt.Sprintf("expected a time in the format YYYY-MM-DD HH:MM, got %q", s),
+			}}
+		}
+		return nil
+	}
+}
+
+// ValidateTimeZone checks that the value is an IANA time zone name.
+func ValidateTimeZone() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		s, ok := v.(string)
+		if !ok {
+			return diag.Diagnostics{{Severity: diag.Error, Summary: "Invalid", Detail: "expected type of string"}}
+		}
+		if _, err := time.LoadLocation(s); err != nil || s == "" {
+			return diag.Diagnostics{{
+				Severity: diag.Error,
+				Summary:  "Invalid time zone",
+				Detail:   fmt.Sprintf("expected an IANA time zone name such as UTC or Europe/Berlin, got %q", s),
+			}}
+		}
+		return nil
+	}
+}
+
+// ValidateJSONString rejects values that are not valid JSON.
+func ValidateJSONString() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		s, ok := v.(string)
+		if !ok {
+			return diag.Diagnostics{{Severity: diag.Error, Summary: "Invalid", Detail: "expected type of string"}}
+		}
+		if !isJSONString(s) {
+			return diag.Diagnostics{{
+				Severity: diag.Error,
+				Summary:  "Invalid JSON",
+				Detail:   "expected valid JSON; use jsonencode()",
+			}}
+		}
+		return nil
+	}
+}
+
+// ValidateJSONObjectString rejects values that are not a JSON object.
+func ValidateJSONObjectString() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		s, ok := v.(string)
+		if !ok {
+			return diag.Diagnostics{{Severity: diag.Error, Summary: "Invalid", Detail: "expected type of string"}}
+		}
+		var obj map[string]interface{}
+		if err := json.Unmarshal([]byte(s), &obj); err != nil || obj == nil {
+			return diag.Diagnostics{{
+				Severity: diag.Error,
+				Summary:  "Invalid JSON object",
+				Detail:   "expected a JSON object; use jsonencode({...})",
+			}}
+		}
+		return nil
+	}
+}
+
+// expandStringSet converts a TypeSet of strings to a slice.
+func expandStringSet(v interface{}) []string {
+	set, ok := v.(*schema.Set)
+	if !ok || set == nil {
+		return []string{}
+	}
+	return expandStringList(set.List())
+}
+
+// setJSONAttribute stores API JSON normalised so DiffSuppress compares equal.
+func setJSONAttribute(d *schema.ResourceData, key string, raw []byte) error {
+	return d.Set(key, normalizeRawJSON(raw))
+}
+
+// normalizeRawJSON returns compact JSON, or "" for empty or null.
+func normalizeRawJSON(raw []byte) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+	if normalized, err := normalizeJSON(string(raw)); err == nil {
+		return normalized
+	}
+	return string(raw)
+}
+
+// isSetInConfig reports whether the attribute is present in the configuration.
+func isSetInConfig(d *schema.ResourceData, key string) bool {
+	raw := d.GetRawConfig()
+	if raw.IsNull() || !raw.IsKnown() {
+		return false
+	}
+	attr := raw.GetAttr(key)
+	return !attr.IsNull() && attr.IsKnown()
+}
+
+func configuredBool(d *schema.ResourceData, key string) *bool {
+	if !isSetInConfig(d, key) {
+		return nil
+	}
+	v := d.Get(key).(bool)
+	return &v
+}
+
+func configuredInt(d *schema.ResourceData, key string) *int {
+	if !isSetInConfig(d, key) {
+		return nil
+	}
+	v := d.Get(key).(int)
+	return &v
+}
+
+// jsonStringField returns the string value of key in a JSON object, or "".
+func jsonStringField(raw []byte, key string) string {
+	var obj map[string]interface{}
+	if err := json.Unmarshal(raw, &obj); err != nil {
+		return ""
+	}
+	s, _ := obj[key].(string)
+	return s
 }
